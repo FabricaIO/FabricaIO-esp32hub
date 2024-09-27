@@ -55,5 +55,4 @@ class Configuration {
 		static bool saveConfig();
 		static bool saveConfig(String config);
 		static String getConfig();
-
 };
