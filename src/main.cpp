@@ -83,13 +83,6 @@ void setup() {
 		while(true);
 	}
 
-	// Load saved configuration if there is one
-	if (!Configuration::loadConfig()) {
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Could not load configuration");
-		while(true);
-	}
-
 	if (Configuration::currentConfig.WiFiClient) {
 		// Configure WiFi client
 		DNSServer dns;
@@ -98,9 +91,8 @@ void setup() {
 		configurator.connectWiFi();
 		WiFi.setAutoReconnect(true);
 		server.reset();
-		// Set local time via NTP
+		// Set local time via NTP once connected
 		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer.c_str());
-		Serial.println("Time set via NTP");
 	} else {
 		// Start AP
 		WiFi.softAP(Configuration::currentConfig.configSSID, Configuration::currentConfig.configPW);
