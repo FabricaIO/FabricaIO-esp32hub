@@ -1,0 +1,29 @@
+<!--
+This file is licensed under the GPLv3 License Copyright (c) 2024 Sam Groveman
+Contributors: Sam Groveman
+-->
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>        
+		<link rel="stylesheet" href="/main.css">
+		<script src="/ajax-script.js"></script>
+		<script src="/index-script.js"></script>
+		<title>ESP32 Sensor Hub</title>
+	</head>
+	<body>
+		<div id="wrapper">
+			<h1>ESP32 Sensor Hub</h1>
+			<h2>Use the buttons below to manage your device.</h2>
+			<div id="message"></div>
+			<div class="button-container">
+				<button class="def-button" id="settime">Set Time On Device</button>
+				<a class="def-button" href="/devices.html">Device Manger</a>
+				<a class="def-button" href="/storage.html">Storage Manger</a>
+				<a class="def-button" href="/config.html">Sensor Hub Settings</a>
+				<a class="def-button" href="/update">Update Firmware</a>
+				<button class="def-button" id="reboot">Reboot Device</button>
+				<button class="def-button" id="reset">Reset WiFi Settings</button>
+			</div>
+		</div>
+	</body>
+</html>

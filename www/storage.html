@@ -1,0 +1,38 @@
+<!--
+This file is licensed under the GPLv3 License Copyright (c) 2024 Sam Groveman
+Contributors: Sam Groveman
+-->
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>        
+		<link rel="stylesheet" href="/main.css">
+		<title>ESP32 Sensor Hub | Storage Management</title>
+		<script src="/ajax-script.js"></script>
+		<script src="/storage-script.js"></script>
+	</head>
+	<body>
+		<div id="wrapper">
+			<h1>Storage Manager</h1>
+			<div id="upload">
+				<h2>Select a file to upload it to the device.</h2>
+				<h2 id="freespace"></h2>
+				<div id="up-progress">
+					<div id="up-bar"></div>
+					<div id="up-percent">0%</div>
+				</div>
+				<input type="file" id="up-file" disabled>
+				<div id="message"></div>
+				<div class="button-container">
+					<button class="def-button" id="up-www">Upload to WWW</button>
+				</div>
+			</div>
+			<div id="manage">
+				<h2>File List</h2>
+				<table>
+					<tbody id="file-list">
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</body>
+</html>
