@@ -6,7 +6,7 @@
 // Run code when page DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
 	GETRequest("/sensors/", addSensors);
-	GETRequest("/signals/", addReceivers);
+	GETRequest("/actors/", addActors);
 
 });
 
@@ -23,28 +23,28 @@ function addSensors(sensors) {
 	}
 }
 
-// Adds all connected signal receivers to the page
-function addReceivers(receivers) {
-	const holder = document.getElementById("receivers");
-	if (receivers.receivers.length === 0) {
-		holder.innerHTML = '<p>No active receivers</p>';
+// Adds all connected actors to the page
+function addActors(actors) {
+	const holder = document.getElementById("actors");
+	if (actors.actors.length === 0) {
+		holder.innerHTML = '<p>No active actors</p>';
 	} else {
 		holder.innerHTML = '<div class="button-container">\r\n';
-		receivers.receivers.forEach(receiver => {
-			holder.innerHTML += '<button class="def-button" onclick="loadDevice(false,\'' + receiver.description.name + '\',' +  receiver.positionID +')">' + receiver.description.name + '</button>';
+		actors.actors.forEach(actor => {
+			holder.innerHTML += '<button class="def-button" onclick="loadDevice(false,\'' + actor.description.name + '\',' +  actor.positionID +')">' + actor.description.name + '</button>';
 		});
 	}
 }
 
-// Adds a signal receiver to the page for configuring
+// Adds an actor to the page for configuring
 function loadDevice(isSensor, name, posID) {
 	const holder = document.getElementById("device");
 	holder.dataset.posid = posID;
 	holder.dataset.sensor = isSensor;
 	device.data
 	holder.innerHTML = '<h2>' + name + '</h2>';
-	let path = "/signals/config";
-	let dataName = "receiver";
+	let path = "/actors/config";
+	let dataName = "actor";
 	if (isSensor) {
 		path = "/sensors/config";
 		dataName = "sensor";
@@ -121,6 +121,6 @@ function updateDeviceConfig(isSensor, posID) {
 	if (isSensor) {
 		POSTRequest('/sensors/config', "Device config updated!", {'sensor': posID, 'config': JSON.stringify(new_config)});
 	} else {
-		POSTRequest('/signals/config', "Device config updated!", {'receiver': posID, 'config': JSON.stringify(new_config)});
+		POSTRequest('/actors/config', "Device config updated!", {'actor': posID, 'config': JSON.stringify(new_config)});
 	}
 }

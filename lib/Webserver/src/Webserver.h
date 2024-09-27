@@ -21,7 +21,7 @@
 #include <Storage.h>
 #include <Configuration.h>
 #include <SensorManager.h>
-#include <SignalManager.h>
+#include <ActorManager.h>
 #include <WebhookManager.h>
 #include <HTTPClient.h>
 #include <EventBroadcaster.h>

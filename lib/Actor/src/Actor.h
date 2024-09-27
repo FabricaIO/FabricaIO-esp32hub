@@ -10,12 +10,12 @@
 #include <DeviceConfig.h>
 
 /// @brief Defines a generic signal receiver class for inheriting 
-class SignalReceiver: public DeviceConfig {
+class Actor : public DeviceConfig {
 	public:
 		/// @brief Holds the description of the device capable of receiving signals
 		struct {
 			/// @brief The number of signals this device can receive
-			int signalQuantity;
+			int actionQuantity;
 
 			/// @brief The type of device this is
 			String type;
@@ -24,12 +24,12 @@ class SignalReceiver: public DeviceConfig {
 			String name;
 			
 			/// @brief Contains of map of signals this device can receive and their ID numbers. Signal names must contain only alphanumeric and underscores, and contain at least one letter
-			std::map<String, int> signals;
+			std::map<String, int> actions;
 
 			/// @brief The ID of this device
 			int id;
 		} Description;
 
 		virtual bool begin();
-		virtual std::tuple<bool, String> receiveSignal(int signal, String payload = "");
+		virtual std::tuple<bool, String> receiveAction(int action, String payload = "");
 };

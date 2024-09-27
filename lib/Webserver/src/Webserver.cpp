@@ -136,29 +136,29 @@ bool Webserver::ServerStart() {
 		}
 	});
 
-	// Get descriptions of available signal receivers
-	server->on("/signals/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send(HTTP_CODE_OK, "text/json", SignalManager::getReceiverInfo());
+	// Get descriptions of available actors
+	server->on("/actors/", HTTP_GET, [this](AsyncWebServerRequest *request) {
+		request->send(HTTP_CODE_OK, "text/json", ActorManager::getActorInfo());
 	});
 
 	// Get curent configuration of a receiver
-	server->on("/signals/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		if (request->hasParam("receiver")) {
-			int receiverPosID = request->getParam("receiver")->value().toInt();
-			request->send(HTTP_CODE_OK, "text/json", SignalManager::getReceiverConfig(receiverPosID));
+	server->on("/actors/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
+		if (request->hasParam("actor")) {
+			int actorPosID = request->getParam("actor")->value().toInt();
+			request->send(HTTP_CODE_OK, "text/json", ActorManager::getActorConfig(actorPosID));
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
 	});
 
-	// Update configuration of a receiver
-	server->on("/signals/config", HTTP_POST, [this](AsyncWebServerRequest *request) {
-		if (request->hasParam("config", true) && request->hasParam("receiver", true)) {
+	// Update configuration of an actor
+	server->on("/actors/config", HTTP_POST, [this](AsyncWebServerRequest *request) {
+		if (request->hasParam("config", true) && request->hasParam("actor", true)) {
 			// Parse data payload
-			int receiverPosID = request->getParam("receiver", true)->value().toInt();
+			int actorPosID = request->getParam("actor", true)->value().toInt();
 			String config = request->getParam("config", true)->value();
 			// Attempt to apply config data
-			if (SignalManager::setReceiverConfig(receiverPosID, config)) {
+			if (ActorManager::setActorConfig(actorPosID, config)) {
 				request->send(HTTP_CODE_OK, "text/plain", "OK");
 			} else {
 				request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not apply config settings");
@@ -168,13 +168,13 @@ bool Webserver::ServerStart() {
 		}
 	});
 
-	// Adds a signal to the signal queue using the signal's name or ID
-	server->on("/signals/add", HTTP_POST, [this](AsyncWebServerRequest *request) {
+	// Adds an action to the action queue using the action's name or ID
+	server->on("/actors/add", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess) {
-			if (request->hasParam("receiver", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
+			if (request->hasParam("actor", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
 				// Parse data payload
 				bool id = true;
-				int receiverPosID = request->getParam("receiver", true)->value().toInt();
+				int actorPosID = request->getParam("actor", true)->value().toInt();
 				String payload = "";
 				if (request->hasParam("payload", true)) {
 					payload = request->getParam("payload", true)->value();
@@ -182,9 +182,9 @@ bool Webserver::ServerStart() {
 				// Attempt to add signal to queue
 				bool success = false;
 				if (request->hasParam("id", true)) {
-					success = SignalManager::addSignalToQueue(receiverPosID, request->getParam("id", true)->value().toInt(), payload);
+					success = ActorManager::addActionToQueue(actorPosID, request->getParam("id", true)->value().toInt(), payload);
 				} else {
-					success = SignalManager::addSignalToQueue(receiverPosID, request->getParam("name", true)->value(), payload);
+					success = ActorManager::addActionToQueue(actorPosID, request->getParam("name", true)->value(), payload);
 				}
 				if (!success) {
 					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not add signal to queue");
@@ -199,22 +199,22 @@ bool Webserver::ServerStart() {
 		}
 	});
 
-	// Sends a signal to a receiver immediately using the signal'a name or ID, and returns any response
-	server->on("/signals/execute", HTTP_POST, [this](AsyncWebServerRequest *request) {
+	// Sends an action to a actor immediately using the action'a name or ID, and returns any response
+	server->on("/actors/execute", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess) {	
-			if (request->hasParam("receiver", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
+			if (request->hasParam("actor", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
 				// Parse data payload
 				bool id = true;
-				int receiverPosID = request->getParam("receiver", true)->value().toInt();
+				int actorPosID = request->getParam("actor", true)->value().toInt();
 				String payload = "";
 				if (request->hasParam("payload", true)) {
 					payload = request->getParam("payload", true)->value();
 				}
 				std::tuple<bool, String> result;
 				if (request->hasParam("id", true)) {
-					result = SignalManager::processSignalImmediately(receiverPosID, request->getParam("id", true)->value().toInt(), payload);
+					result = ActorManager::processActionImmediately(actorPosID, request->getParam("id", true)->value().toInt(), payload);
 				} else {
-					result = SignalManager::processSignalImmediately(receiverPosID, request->getParam("name", true)->value(), payload);
+					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name", true)->value(), payload);
 				}
 				String mime = "text/json";
 				if (!std::get<0>(result)) {
@@ -230,22 +230,22 @@ bool Webserver::ServerStart() {
 		}
 	});
 
-	// Sends a signal to a receiver immediately using the signal'a name or ID, and returns any response
-	server->on("/signals/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
+	// Sends a action to an actor immediately using the action's name or ID, and returns any response
+	server->on("/actors/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
-			if (request->hasParam("receiver") && (request->hasParam("id") || request->hasParam("name"))) {
+			if (request->hasParam("actor") && (request->hasParam("id") || request->hasParam("name"))) {
 				// Parse data payload
 				bool id = true;
-				int receiverPosID = request->getParam("receiver")->value().toInt();
+				int actorPosID = request->getParam("actor")->value().toInt();
 				String payload = "";
 				if (request->hasParam("payload")) {
 					payload = request->getParam("payload")->value();
 				}
 				std::tuple<bool, String> result;
 				if (request->hasParam("id")) {
-					result = SignalManager::processSignalImmediately(receiverPosID, request->getParam("id")->value().toInt(), payload);
+					result = ActorManager::processActionImmediately(actorPosID, request->getParam("id")->value().toInt(), payload);
 				} else {
-					result = SignalManager::processSignalImmediately(receiverPosID, request->getParam("name")->value(), payload);
+					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name")->value(), payload);
 				}
 				String mime = "text/json";
 				if (!std::get<0>(result)) {
@@ -322,7 +322,7 @@ bool Webserver::ServerStart() {
 	// Fires a webhook using a GET request and the webhook's position ID
 	server->on("/webhooks/get", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (request->hasParam("webhook", true) && request->hasParam("type", true)) {
-			int webhookPosID = request->getParam("receiver", true)->value().toInt();
+			int webhookPosID = request->getParam("webhook", true)->value().toInt();
 			String type = request->getParam("type", true)->value();
 			type.toLowerCase();
 			if (request->hasParam("parameters", true)) {
@@ -362,7 +362,7 @@ bool Webserver::ServerStart() {
 	// Fires a webhook using a POST request and the webhook's position ID
 	server->on("/webhooks/post", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (request->hasParam("webhook", true) && request->hasParam("type", true) && request->hasParam("parameters", true)) {
-			int webhookPosID = request->getParam("receiver", true)->value().toInt();
+			int webhookPosID = request->getParam("webhook", true)->value().toInt();
 			String type = request->getParam("type", true)->value();
 			type.toLowerCase();
 			String parameters = request->getParam("parameters", true)->value();

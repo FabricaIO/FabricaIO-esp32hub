@@ -14,7 +14,7 @@
 #include <WebhookManager.h>
 #include <Configuration.h>
 #include <EventBroadcaster.h>
-#include <SignalManager.h>
+#include <ActorManager.h>
 #include <WebServer.h>
 #include <WiFiConfig.h>
 #include <SensorManager.h>
@@ -35,10 +35,11 @@ ESP32Time rtc;
 /// @brief AsyncWebServer object (passed to WfiFiConfig and WebServer)
 AsyncWebServer server(80);
 
-/******** Declare sensor and receiver objects here ********/
+/******** Declare sensor, actor, receiver objects here ********/
 
 
-/******** End sensor and receiver object declaration ********/
+
+/******** End sensor, actor, receiver object declaration ********/
 
 void setup() {
 	// Start serial
@@ -123,9 +124,10 @@ void setup() {
 		while(true);
 	}
 
-	/******** Add sensors and receivers here ********/
+	/******** Add sensors and actors here ********/
 
-	/******** End sensor and receiver addition section ********/
+
+	/******** End sensor and actor addition section ********/
 
 	// Start sensors
 	if (!SensorManager::beginSensors()) {
@@ -133,8 +135,8 @@ void setup() {
 		while(true);
 	}
 
-	// Start receivers
-	if (!SignalManager::beginReceivers()) {
+	// Start actors
+	if (!ActorManager::beginActors()) {
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 		while(true);
 	}
@@ -146,13 +148,13 @@ void setup() {
 		while(true);
 	}
 
-	// Print the configured sensors, receivers, and webhooks
+	// Print the configured sensors, actors, and webhooks
 	Serial.println(SensorManager::getSensorInfo());
-	Serial.println(SignalManager::getReceiverInfo());
+	Serial.println(ActorManager::getActorInfo());
 	Serial.println(WebhookManager::getWebhooks());
 
 	// Start signal processor loop (8K of stack depth is probably overkill, but it does process potentially large JSON strings and we have the RAM, so better to be safe)
-	xTaskCreate(SignalManager::signalProcessor, "Command Processor Loop", 8192, NULL, 1, NULL);
+	xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", 8192, NULL, 1, NULL);
 
 	// Ready!
 	Serial.println("Time: " + rtc.getDateTime());
