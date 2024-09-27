@@ -38,7 +38,6 @@ AsyncWebServer server(80);
 /******** Declare sensor, actor, receiver objects here ********/
 
 
-
 /******** End sensor, actor, receiver object declaration ********/
 
 void setup() {
