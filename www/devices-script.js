@@ -57,8 +57,9 @@ function loadDevice(isSensor, name, posID) {
 // Adds a device configuration to the page
 function addDeviceConfig(device) {
 	const holder = document.getElementById("device");
+	let buttons = '<div class="button-container">';
 	if (Object.keys(device).length === 0 ) {
-		holder.innerHTML += '<p>No configurable options</p>';
+		holder.innerHTML = '<p>No configurable options</p>';
 	} else {
 		for (opt in device) {
 			let type = "text";
@@ -96,8 +97,14 @@ function addDeviceConfig(device) {
 				<input class="normal-input" type="' + type + '" name="' + name + '" step="' + step + '" value="' + device[opt] + '" ' + additionalAttrb +'></div>';
 			}
 		}
-		holder.innerHTML += '<div class="button-container"><button class="def-button" onclick="updateDeviceConfig(' + holder.dataset.sensor + ',' + holder.dataset.posid + ')">Update Config</button></div>';
+		buttons += '<button class="def-button" onclick="updateDeviceConfig(' + holder.dataset.sensor + ',' + holder.dataset.posid + ')">Update Config</button>';
 	}
+	if (holder.dataset.sensor === 'true') {
+		console.log(holder.dataset.posid);
+		buttons += '<a class="def-button" href="/calibrate.html?id=' + holder.dataset.posid + '">Calibrate</a>';
+	}
+	buttons += '</div>';
+	holder.innerHTML += buttons;
 }
 
 // Parses and updates config for device

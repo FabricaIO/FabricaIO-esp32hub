@@ -127,7 +127,7 @@ bool Webserver::ServerStart() {
 				std::tuple<Sensor::calibration_response, String> response = SensorManager::calibrateSensor(sensorPosID, step);
 
 				// Create response
-				request->send(HTTP_CODE_OK, "text/json", "{ \"response\":" + String(std::get<0>(response)) + ",\"message\":" + std::get<1>(response) + "}");
+				request->send(HTTP_CODE_OK, "text/json", "{ \"response\":" + String(std::get<0>(response)) + ",\"message\":\"" + std::get<1>(response) + "\"}");
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 			}
