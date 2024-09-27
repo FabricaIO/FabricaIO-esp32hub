@@ -1,0 +1,4 @@
+# Ignore all sub modules as they are managed sepperately
+actor-*/
+eventreceiver-*/
+sensor-*/
