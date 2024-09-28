@@ -489,6 +489,22 @@ bool Webserver::ServerStart() {
 		}
 	});
 
+	// Allow files to be restored by string input
+	server->on("/restorefile", HTTP_POST, [this](AsyncWebServerRequest *request) {
+		if (request->hasParam("path", true) && request->hasParam("contents", true)) {
+			// Change to Unix line endings to save space
+			String content = request->getParam("contents", true)->value();
+			content.replace("\r\n", "\n");
+			if(Storage::writeFile(request->getParam("path", true)->value(), content)) {
+				request->send(HTTP_CODE_OK, "text/plain", "File restored");
+			} else {
+				request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not restore file");
+			}
+		} else {
+			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
+		}
+	});
+
 	// Update page is special and hard-coded to always be available
 	server->on("/update", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		request->send_P(HTTP_CODE_OK, "text/html", update_page);

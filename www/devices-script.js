@@ -61,7 +61,7 @@ function addDeviceConfig(device) {
 	if (Object.keys(device).length === 0 ) {
 		holder.innerHTML = '<p>No configurable options</p>';
 	} else {
-		for (opt in device) {
+		for (let opt in device) {
 			let type = "text";
 			let step = 1;
 			let additionalAttrb = "";

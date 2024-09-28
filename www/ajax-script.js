@@ -9,11 +9,10 @@
 // Send a POST request with an optional object of key/value pairs for parameters
 // Returns the response to the optional callback provided
 function POSTRequest(path, successMessage, params = {}, callback = null) {
-	document.getElementById('message').innerHTML = "";
 	let xhr = new XMLHttpRequest(), data = new FormData();
 	xhr.responseType = 'json';
 	if (Object.keys(params).length !== 0 ) {
-		for (param in params) {
+		for (let param in params) {
 			data.append(param, params[param]);
 		}
 	}
@@ -36,11 +35,10 @@ function POSTRequest(path, successMessage, params = {}, callback = null) {
 // Send a PUT request with an optional object of key/value pairs for parameters
 // Returns the response to the optional callback provided
 function PUTRequest(path, successMessage, params = {}, callback = null) {
-	document.getElementById('message').innerHTML = "";
 	let xhr = new XMLHttpRequest(), data = new FormData();
 	xhr.responseType = 'json';
 	if (Object.keys(params).length !== 0 ) {
-		for (param in params) {
+		for (let param in params) {
 			data.append(param, params[param]);
 		}
 	}
@@ -68,7 +66,7 @@ function GETRequest(path, callback = null, params = {}) {
     if (Object.keys(params).length !== 0 ) {
 		let first = true
 		path += "?";
-		for (param in params) {
+		for (let param in params) {
 			if (first) {
 				first = false;
 			} else {

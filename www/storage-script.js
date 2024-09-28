@@ -1,7 +1,7 @@
 /*
- * This file is licensed under the GPLv3 License Copyright (c) 2024 Sam Groveman
- * Contributors: Sam Groveman
- */
+* This file is licensed under the GPLv3 License Copyright (c) 2024 Sam Groveman
+* Contributors: Sam Groveman
+*/
 
 // Run code when page DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,6 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
 	// Attach button handlers
 	document.getElementById("up-www").onclick = function() {
 		uprog.upload('/www');
+	};
+	document.getElementById("backup").onclick = function() {
+		downloadBackup();
+	};
+	document.getElementById("restore").onclick = function() {
+		restoreBackup();
 	};
 });
 
@@ -72,4 +78,62 @@ function addFreeSpace(response) {
 		let space = document.getElementById("freespace");
 		space.innerHTML = 'Free space: ' + response.space + ' bytes';
 	}
+}
+
+// Prepares a JSON file of all the config files for download
+async function downloadBackup() {
+	const files = document.querySelectorAll('.file');
+	let backups = {};
+	let dots = 1;
+	for (const file of files) {
+		document.getElementById('message').innerHTML = 'Backing up, please wait'
+		for (let i = 0; i < dots; i++) {
+			document.getElementById('message').innerHTML += '.';
+		}
+		if (dots == 4) {
+			dots = 0;
+		} else {
+			dots++;
+		}
+		let response = await fetch(file.querySelector('.download a').getAttribute('href'));
+		if (!response.ok) {
+			console.log(`Response status: ${response.status}`);
+			document.getElementById('message').innerHTML = 'Could not complete backup';
+			return;
+		}
+		backups[file.querySelector('.delete').dataset.name] = await response.text();
+		await new Promise(r => setTimeout(r, 50));
+	}
+	const a = document.createElement('a');
+	a.href = URL.createObjectURL( new Blob([JSON.stringify(backups, null, 2)], { type:'application/json' }) );
+	a.download = "Backup.json";
+	a.click();
+	a.remove();
+	document.getElementById('message').innerHTML = 'Backup successful!'
+}
+
+// Restores a backup from a JSON file
+async function restoreBackup() {
+	const selectedFile = document.getElementById("up-file").files[0];
+	const reader = new FileReader();
+	reader.onload = async function(file) {
+		let files = JSON.parse(file.target.result);
+		let i = 0;
+		let restored = false;
+		for (let file in files) {
+			POSTRequest('/restorefile', 'File ' + file + ' restored', {"path": file, "contents": files[file]}, async function() {
+				await new Promise(r => setTimeout(r, 50))
+				restored = true;
+			});
+			// Wait for file to be restored before proceeding
+			while (!restored) {
+				await new Promise(r => setTimeout(r, 50))
+			}
+			restored = false;
+		}
+		document.getElementById('message').innerHTML = 'Restore successful!'
+		getFreeStorage();
+		updateFileList();
+	};
+	reader.readAsText(selectedFile);
 }
