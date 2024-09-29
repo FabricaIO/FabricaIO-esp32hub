@@ -48,6 +48,8 @@ bool Configuration::updateConfig(String config) {
 	// Assign loaded values
 	currentConfig.tasksEnabled = doc["tasksEnabled"].as<bool>();
 	currentConfig.period = doc["period"].as<int>();
+	currentConfig.webUsername = doc["webUsername"] | "Fabrica";
+	currentConfig.webPassword = doc["webPassword"] | "Fabrica";
 	currentConfig.useNTP = doc["useNTP"] | true;;
 	currentConfig.hostname = doc["hostname"].as<String>();
 	currentConfig.daylightOffset_sec = doc["gmtOffset"].as<int>();
@@ -95,6 +97,8 @@ String Configuration::configToJSON() {
 	// Assign current values
 	doc["tasksEnabled"] = currentConfig.tasksEnabled;
 	doc["period"] = currentConfig.period;
+	doc["webUsername"] = currentConfig.webUsername;
+	doc["webPassword"] = currentConfig.webPassword;
 	doc["useNTP"] = currentConfig.useNTP;
 	doc["ntpServer"] = currentConfig.ntpServer;
 	doc["gmtOffset"] = currentConfig.gmtOffset_sec;

@@ -24,6 +24,12 @@ class Configuration {
 			
 			/// @brief Controls the sampling period of the sensor hub
 			int period = 10000;
+			
+			/// @brief Username for the web interface
+			String webUsername = "Fabrica";
+
+			/// @brief Password for the web interface
+			String webPassword = "Fabrica";
 
 			/// @brief Whether to use NTP for time data
 			bool useNTP = true;
