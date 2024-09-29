@@ -5,7 +5,6 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <Preferences.h>
 #include <Webserver.h>
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncWiFiManager.h>
@@ -19,6 +18,7 @@
 #include <WiFiConfig.h>
 #include <SensorManager.h>
 #include <PeriodicTasks.h>
+#include <DeviceLoader.h>
 
 /// @brief Current firmware version
 extern const String FW_VERSION = "0.5.0";
@@ -26,19 +26,14 @@ extern const String FW_VERSION = "0.5.0";
 /// @brief Set to true when the POST finishes successfully
 bool POSTSuccess = false;
 
-/// @brief Stores settings in NVS
-Preferences settings;
-
 /// @brief RTC object for getting/setting time
 ESP32Time rtc;
 
 /// @brief AsyncWebServer object (passed to WfiFiConfig and WebServer)
 AsyncWebServer server(80);
 
-/******** Declare sensor, actor, receiver objects here ********/
-
-
-/******** End sensor, actor, receiver object declaration ********/
+/// @brief Loads all actor, sensor, and event receiver devices
+DeviceLoader loader(&rtc);
 
 void setup() {
 	// Start serial
@@ -49,10 +44,8 @@ void setup() {
 	Serial.println("Designed and created by Sam Groveman (C) 2024");
 	Serial.println();
 
-	/******** Add event receivers and loggers here ********/
-
-
-	/******** End event receivers and loggers addition section ********/
+	// Load all event receivers
+	loader.LoadEventReceivers();
 
 	if (!EventBroadcaster::beginReceivers())	{
 		Serial.println("Could not start all event receivers");
@@ -61,13 +54,6 @@ void setup() {
 
 	// Show yellow during startup
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Starting);
-
-	// Start preference storage on NVS
-	if (!settings.begin("sensor-hub", false)) {
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Count not start NVS settings");
-		while(true);
-	};
 
 	// Start storage
 	if (!Storage::begin()) {
@@ -118,10 +104,8 @@ void setup() {
 		while(true);
 	}
 
-	/******** Add sensors and actors here ********/
-
-
-	/******** End sensor and actor addition section ********/
+	// Load all devices
+	loader.LoadDevices();
 
 	// Start sensors
 	if (!SensorManager::beginSensors()) {
