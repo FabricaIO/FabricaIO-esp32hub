@@ -54,6 +54,7 @@ bool Configuration::updateConfig(String config) {
 	currentConfig.WiFiClient = doc["WiFiClient"] | true;
 	currentConfig.configSSID = doc["configSSID"].as<String>();
 	currentConfig.configPW = doc["configPW"].as<String>();
+	currentConfig.hostname = doc["hostname"].as<String>();
 	if (currentConfig.WiFiClient) {
 		// Set local time via NTP
 		configTime(currentConfig.gmtOffset_sec, currentConfig.daylightOffset_sec, currentConfig.ntpServer.c_str());
@@ -99,6 +100,7 @@ String Configuration::configToJSON() {
 	doc["WiFiClient"] = currentConfig.WiFiClient;
 	doc["configSSID"] = currentConfig.configSSID;
 	doc["configPW"] = currentConfig.configPW;
+	doc["hostname"] = currentConfig.hostname;
 
 	// Create string to hold output
 	String output;

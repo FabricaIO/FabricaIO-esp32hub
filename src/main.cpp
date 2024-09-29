@@ -83,6 +83,9 @@ void setup() {
 		while(true);
 	}
 
+	// Set hostname
+	WiFi.setHostname(Configuration::currentConfig.hostname.c_str());
+	
 	if (Configuration::currentConfig.WiFiClient) {
 		// Configure WiFi client
 		DNSServer dns;

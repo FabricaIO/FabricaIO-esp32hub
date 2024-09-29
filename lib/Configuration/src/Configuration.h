@@ -41,6 +41,9 @@ class Configuration {
 
 			/// @brief Password for configuration interface
 			String configPW = "ESP32Sensor";
+
+			/// @brief Hostname used by device
+			String hostname = "FabricaIO-ESP32Hub";
 		} config;
 
 		static String configToJSON();
