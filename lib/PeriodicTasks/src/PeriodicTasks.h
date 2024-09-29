@@ -4,6 +4,7 @@
 */
 #pragma once
 #include<Arduino.h>
+#include <SensorManager.h>
 #include <unordered_map>
 
 /// @brief Holds all and calls tasks at periodic intervals
