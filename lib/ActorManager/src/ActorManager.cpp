@@ -129,6 +129,24 @@ bool ActorManager::setActorConfig(int actorPosID, String config) {
 	}
 }
 
+/// @brief Gets all the current actor versions
+/// @return A JSON string of all sensor versions
+String ActorManager::getActorVersions() {
+	String output;
+	if (actors.size() > 0) {
+		// Allocate the JSON document
+		JsonDocument doc;
+		// Add versions to object
+		for (const auto& a : actors) {
+			doc[a->Description.name] = a->Description.version;
+		}	
+		serializeJson(doc, output);
+	} else {
+		output = "{}";
+	}
+	return output;
+}
+
 /// @brief Executes a actor on a receiver immediately. Use carefully, may cause issues with actors also being processed from queue
 /// @param actorPosID The position ID of the actor receiver
 /// @param action The name of the action

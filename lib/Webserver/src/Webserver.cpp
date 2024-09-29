@@ -127,7 +127,7 @@ bool Webserver::ServerStart() {
 				std::tuple<Sensor::calibration_response, String> response = SensorManager::calibrateSensor(sensorPosID, step);
 
 				// Create response
-				request->send(HTTP_CODE_OK, "text/json", "{ \"response\":" + String(std::get<0>(response)) + ",\"message\":\"" + std::get<1>(response) + "\"}");
+				request->send(HTTP_CODE_OK, "text/json", "{\"response\":" + String(std::get<0>(response)) + ",\"message\":\"" + std::get<1>(response) + "\"}");
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 			}
@@ -505,9 +505,13 @@ bool Webserver::ServerStart() {
 		}
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
-	// Used to fetch current firmware version
+	// Used to fetch current firmware versions
 	server->on("/version", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send(HTTP_CODE_OK, "text/json", "{\"version\":\"" + FW_VERSION + "\"}");
+		String versions = "{\"hub\":" + FW_VERSION + ",";
+		versions += "\"sensors\":" + SensorManager::getSensorVersions() + ",";
+		versions += "\"actors\":" + ActorManager::getActorVersions();
+		versions += "}";
+		request->send(HTTP_CODE_OK, "text/json", versions);
 	});
 
 	// Update page is special and hard-coded to always be available

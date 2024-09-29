@@ -40,5 +40,6 @@ class SensorManager {
 		static String getSensorInfo();
 		static String getSensorConfig(int sensorPosID);
 		static bool setSensorConfig(int sensorPosID, String config);
+		static String getSensorVersions();
 		static std::tuple<Sensor::calibration_response, String> calibrateSensor(int sensorPosID, int step);
 };

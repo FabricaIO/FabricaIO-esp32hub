@@ -117,6 +117,24 @@ bool SensorManager::setSensorConfig(int sensorPosID, String config) {
 	}
 }
 
+/// @brief Gets all the current sensor versions
+/// @return A JSON string of all sensor versions
+String SensorManager::getSensorVersions() {
+	String output;
+	if (sensors.size() > 0) {
+		// Allocate the JSON document
+		JsonDocument doc;
+		// Add versions to object
+		for (const auto& s : sensors) {
+			doc[s->Description.name] = s->Description.version;
+		}
+		serializeJson(doc, output);
+	} else {
+		output = "{}";
+	}
+	return output;	
+}
+
 /// @brief Used to calibrate sensor
 /// @param sensorPosID The position ID of the sensor to calibrate
 /// @param step The calibration step to execute for multi-step calibration processes

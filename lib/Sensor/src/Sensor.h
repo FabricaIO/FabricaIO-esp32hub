@@ -38,6 +38,9 @@ class Sensor : public DeviceConfig {
 
 			/// @brief The ID of this sensor
 			int id;
+
+			/// @brief The version of the sensor code
+			String version = "0.0.1";
 		} Description;
 
 		/// @brief Stores measured values

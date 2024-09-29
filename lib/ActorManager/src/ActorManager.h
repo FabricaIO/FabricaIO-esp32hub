@@ -35,5 +35,6 @@ class ActorManager {
 		static String getActorInfo();
 		static String getActorConfig(int actorPosID);
 		static bool setActorConfig(int actorPosID, String config);
+		static String getActorVersions();
 		static void actionProcessor(void* arg);
 };

@@ -28,6 +28,9 @@ class Actor : public DeviceConfig {
 
 			/// @brief The ID of this device
 			int id;
+
+			/// @brief The version of the actor code
+			String version = "0.0.1";
 		} Description;
 
 		virtual bool begin();
