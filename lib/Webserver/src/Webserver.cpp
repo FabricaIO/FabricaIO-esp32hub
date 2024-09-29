@@ -395,27 +395,22 @@ bool Webserver::ServerStart() {
 
 	// Sets the time on the device (example of parsing JSON parameters)
 	server->on("/setTime", HTTP_POST, [this](AsyncWebServerRequest *request) {
-		if (!Configuration::currentConfig.WiFiClient) {
-			if (request->hasParam("time", true) && request->hasParam("offset")) {
-				// Parse data payload
-				long time = request->getParam("time", true)->value().toInt();
-				long offset = request->getParam("offset", true)->value().toInt();
-				
-				// Apply time settings
-    			rtc->setTime(time);
-				rtc->offset = offset;
+		if (request->hasParam("time", true) && request->hasParam("offset")) {
+			// Parse data payload
+			long time = request->getParam("time", true)->value().toInt();
+			long offset = request->getParam("offset", true)->value().toInt();
+			
+			// Apply time settings
+			rtc->setTime(time);
+			rtc->offset = offset;
 
-				Serial.print("Set time and timezone offset to: ");
-				Serial.print(time);
-				Serial.print(" ");
-				Serial.println(offset);
-				request->send(HTTP_CODE_OK, "text/plain", "OK");
-			} else {
-				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
-			}
-		} else {
+			Serial.print("Set time and timezone offset to: ");
+			Serial.print(time);
+			Serial.print(" ");
+			Serial.println(offset);
 			request->send(HTTP_CODE_OK, "text/plain", "OK");
-			Serial.println("Time already set by NTP");
+		} else {
+			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
 	});
 

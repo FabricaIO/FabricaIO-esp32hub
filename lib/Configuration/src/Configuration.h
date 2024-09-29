@@ -25,6 +25,9 @@ class Configuration {
 			/// @brief Controls the sampling period of the sensor hub
 			int period = 10000;
 
+			/// @brief Whether to use NTP for time data
+			bool useNTP = true;
+
 			/// @brief NTP server
 			String ntpServer = "pool.ntp.org";
 
@@ -34,6 +37,7 @@ class Configuration {
 			/// @brief Offset from GMT in seconds
 			long  gmtOffset_sec = -18000;
 
+			/// @brief If the device is a WiFi client or AP
 			bool WiFiClient = true;
 
 			/// @brief SSID for configuration interface
@@ -51,7 +55,7 @@ class Configuration {
 	public:
 		/// @brief The currently used configuration
 		static config currentConfig;
-
+		
 		static bool begin(String File = "config.json");
 		static bool loadConfig();
 		static bool updateConfig(String config);

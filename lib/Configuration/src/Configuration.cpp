@@ -48,7 +48,8 @@ bool Configuration::updateConfig(String config) {
 	// Assign loaded values
 	currentConfig.tasksEnabled = doc["tasksEnabled"].as<bool>();
 	currentConfig.period = doc["period"].as<int>();
-	currentConfig.ntpServer = doc["ntpServer"].as<String>();
+	currentConfig.useNTP = doc["useNTP"] | true;;
+	currentConfig.hostname = doc["hostname"].as<String>();
 	currentConfig.daylightOffset_sec = doc["gmtOffset"].as<int>();
 	currentConfig.gmtOffset_sec = doc["daylightOffset"].as<long>();
 	currentConfig.WiFiClient = doc["WiFiClient"] | true;
@@ -94,6 +95,7 @@ String Configuration::configToJSON() {
 	// Assign current values
 	doc["tasksEnabled"] = currentConfig.tasksEnabled;
 	doc["period"] = currentConfig.period;
+	doc["useNTP"] = currentConfig.useNTP;
 	doc["ntpServer"] = currentConfig.ntpServer;
 	doc["gmtOffset"] = currentConfig.gmtOffset_sec;
 	doc["daylightOffset"] = currentConfig.daylightOffset_sec;
