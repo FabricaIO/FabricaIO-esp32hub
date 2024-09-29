@@ -6,6 +6,7 @@
 // Run code when page DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
 	GETRequest("/config/", addSettings);
+	GETRequest('/time', addTime);
 
 });
 
@@ -52,6 +53,14 @@ function addSettings(config) {
 			}
 		}
 	}
+}
+
+// Displays current time on device
+function addTime(response) {
+	const time = document.getElementById("time");
+	var d = new Date(0);
+	d.setUTCSeconds(response);
+	time.innerHTML = d.toLocaleString();
 }
 
 // Parses and updates config for the sensor hub

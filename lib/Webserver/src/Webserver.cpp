@@ -393,9 +393,14 @@ bool Webserver::ServerStart() {
 		}
 	});
 
-	// Sets the time on the device (example of parsing JSON parameters)
-	server->on("/setTime", HTTP_POST, [this](AsyncWebServerRequest *request) {
-		if (request->hasParam("time", true) && request->hasParam("offset")) {
+	// Gets the time on the device
+	server->on("/time", HTTP_GET, [this](AsyncWebServerRequest *request) {
+		request->send(HTTP_CODE_OK, "text/plain", String(rtc->getLocalEpoch()));
+	});
+
+	// Sets the time on the device
+	server->on("/time", HTTP_POST, [this](AsyncWebServerRequest *request) {
+		if (request->hasParam("time", true) && request->hasParam("offset", true)) {
 			// Parse data payload
 			long time = request->getParam("time", true)->value().toInt();
 			long offset = request->getParam("offset", true)->value().toInt();
