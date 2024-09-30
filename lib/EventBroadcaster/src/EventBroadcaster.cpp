@@ -33,3 +33,21 @@ bool EventBroadcaster::addReceiver(EventReceiver* receiver) {
 	EventBroadcaster::receivers.push_back(receiver);
 	return true; // Currently no way to fail this
 }
+
+/// @brief Get the versions of all connected receivers
+/// @return A JSON string of all the versions
+String EventBroadcaster::getReceiverVersions() {
+	String output;
+	if (receivers.size() > 0) {
+		// Allocate the JSON document
+		JsonDocument doc;
+		// Add versions to object
+		for (const auto& r : receivers) {
+			doc[r->Description.name] = r->Description.version;
+		}
+		serializeJson(doc, output);
+	} else {
+		output = "{}";
+	}
+	return output;
+}

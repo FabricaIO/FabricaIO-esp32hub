@@ -4,6 +4,8 @@
 */
 
 #pragma once
+#include <Arduino.h>
+#include <ArduinoJson.h>
 #include <vector>
 #include <EventReceiver.h>
 
@@ -20,5 +22,5 @@ class EventBroadcaster {
 		static bool beginReceivers();
 		static bool broadcastEvent(Events event);
 		static bool addReceiver(EventReceiver* receiver);
-
+		static String getReceiverVersions();
 };

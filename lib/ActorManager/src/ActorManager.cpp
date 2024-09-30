@@ -93,9 +93,10 @@ String ActorManager::getActorInfo() {
 		receiver_array[i]["description"]["type"] = actors[i]->Description.type;
 		receiver_array[i]["description"]["name"] = actors[i]->Description.name;
 		receiver_array[i]["description"]["id"] = actors[i]->Description.id;
+		receiver_array[i]["description"]["version"] = actors[i]->Description.version;
 		// Add actors and IDs to JSON document
-		for (auto const &s : actors[i]->Description.actions) {
-			receiver_array[i]["actions"][s.second] = s.first;
+		for (auto const &a : actors[i]->Description.actions) {
+			receiver_array[i]["actions"][a.second] = a.first;
 		}
 	}
 	// Create string to hold output
