@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	xhr.responseType = 'json';
 	xhr.open('GET', '/version');
 	xhr.onload = function() {
-	document.getElementById("fw").innerHTML += xhr.response.version;
+	document.getElementById("fw").innerHTML += xhr.response.hub;
 	};
 	xhr.send();
 });

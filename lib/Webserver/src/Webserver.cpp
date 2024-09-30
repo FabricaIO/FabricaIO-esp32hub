@@ -507,7 +507,7 @@ bool Webserver::ServerStart() {
 
 	// Used to fetch current firmware versions
 	server->on("/version", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		String versions = "{\"hub\":" + FW_VERSION + ",";
+		String versions = "{\"hub\":\"" + FW_VERSION + "\",";
 		versions += "\"eventreceivers\":" + EventBroadcaster::getReceiverVersions() + ",";
 		versions += "\"sensors\":" + SensorManager::getSensorVersions() + ",";
 		versions += "\"actors\":" + ActorManager::getActorVersions();
