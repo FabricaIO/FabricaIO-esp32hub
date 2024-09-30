@@ -16,7 +16,6 @@ class PeriodicTask {
 
 			/// @brief The period, in ms, that should elapse before task is run
 			long taskPeriod;
-
 		} TaskDescription;
 
 		/// @brief The total amount of time elapsed since last task call
