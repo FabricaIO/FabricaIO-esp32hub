@@ -16,11 +16,14 @@ class PeriodicTask {
 
 			/// @brief The period, in ms, that should elapse before task is run
 			long taskPeriod;
-		} TaskDescription;
+		} task_config;
 
 		/// @brief The total amount of time elapsed since last task call
 		long totalElapsed = 0;
 
 		virtual void runTask(long elapsed) = 0;
-		virtual bool enableTask(bool enable);
+		bool enableTask(bool enable);
+
+	protected:
+		bool taskPeriodTriggered(long elapsed);
 };

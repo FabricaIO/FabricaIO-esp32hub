@@ -8,8 +8,9 @@ String DeviceConfig::getConfig() {
 
 /// @brief Updates configuration of device
 /// @param config A JSON string of the configuration settings
+/// @param save If the configuration should be saved to a file
 /// @return True on success
-bool DeviceConfig::setConfig(String config) {
+bool DeviceConfig::setConfig(String config, bool save) {
 	return true;
 }
 

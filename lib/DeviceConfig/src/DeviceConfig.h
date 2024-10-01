@@ -12,7 +12,7 @@
 class DeviceConfig {
 	public:
 		virtual String getConfig();
-		virtual bool setConfig(String config);
+		virtual bool setConfig(String config, bool save);
 	protected:
 		bool saveConfig(String path, String contents);
 		bool checkConfig(String path);

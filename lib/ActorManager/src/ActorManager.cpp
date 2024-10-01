@@ -124,7 +124,7 @@ String ActorManager::getActorConfig(int actorPosID) {
 /// @return True on success
 bool ActorManager::setActorConfig(int actorPosID, String config) {
 	if (actorPosID >= 0 && actorPosID < actors.size()) {
-		return actors[actorPosID]->setConfig(config);
+		return actors[actorPosID]->setConfig(config, true);
 	} else {
 		return false;
 	}

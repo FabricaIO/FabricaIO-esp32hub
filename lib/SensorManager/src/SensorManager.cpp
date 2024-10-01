@@ -112,7 +112,7 @@ String SensorManager::getSensorConfig(int sensorPosID) {
 /// @return True on success
 bool SensorManager::setSensorConfig(int sensorPosID, String config) {
 	if (sensorPosID >= 0 && sensorPosID < sensors.size()) {
-		return sensors[sensorPosID]->setConfig(config);
+		return sensors[sensorPosID]->setConfig(config, true);
 	} else {
 		return false;
 	}

@@ -55,6 +55,7 @@
 		"stdexcept": "cpp",
 		"thread": "cpp",
 		"cinttypes": "cpp",
-		"iostream": "cpp"
+		"iostream": "cpp",
+		"set": "cpp"
 	}
 }
