@@ -22,7 +22,6 @@
 #include <Configuration.h>
 #include <SensorManager.h>
 #include <ActorManager.h>
-#include <WebhookManager.h>
 #include <HTTPClient.h>
 #include <EventBroadcaster.h>
 #include <vector>

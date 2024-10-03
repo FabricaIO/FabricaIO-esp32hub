@@ -10,7 +10,6 @@
 #include <ESPAsyncWiFiManager.h>
 #include <ESP32Time.h>
 #include <Storage.h>
-#include <WebhookManager.h>
 #include <Configuration.h>
 #include <EventBroadcaster.h>
 #include <ActorManager.h>
@@ -97,13 +96,6 @@ void setup() {
 	webserver.ServerStart();
 	xTaskCreate(Webserver::RebootCheckerTaskWrapper, "Reboot Checker Loop", 1024, &webserver, 1, NULL);
 
-	/// Start webhooks
-	if (!WebhookManager::begin("webhooks.json")) {
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Could not start webhook manager");
-		while(true);
-	}
-
 	// Load all devices
 	loader.LoadDevices();
 
@@ -119,17 +111,9 @@ void setup() {
 		while(true);
 	}
 
-	// Load saved webhooks if any
-	if (!WebhookManager::loadWebhooks()) {
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Could not load webhooks");
-		while(true);
-	}
-
 	// Print the configured sensors, actors, and webhooks
 	Serial.println(SensorManager::getSensorInfo());
 	Serial.println(ActorManager::getActorInfo());
-	Serial.println(WebhookManager::getWebhooks());
 
 	// Start signal processor loop (8K of stack depth is probably overkill, but it does process potentially large JSON strings and we have the RAM, so better to be safe)
 	xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", 8192, NULL, 1, NULL);
