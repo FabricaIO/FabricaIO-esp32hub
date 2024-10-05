@@ -15,16 +15,16 @@ WiFiConfig::WiFiConfig (AsyncWiFiManager* WiFiManager, String SSID, String Passw
 void WiFiConfig::configModeCallback(AsyncWiFiManager *myWiFiManager)
 {
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::WifiConfig);
-	Serial.println("Access point started");
+	Logger.println("Access point started");
 }
 
 /// @brief Callback notifying that new settings were saved and connection successful
 /// @param myWiFiManager the AsyncWiFiManager making the call
 void WiFiConfig::configModeEndCallback(AsyncWiFiManager *myWiFiManager)
 {
-	Serial.println("Connection successful");
-	Serial.print("IP address: ");
-	Serial.println(WiFi.localIP());
+	Logger.println("Connection successful");
+	Logger.print("IP address: ");
+	Logger.println(WiFi.localIP());
 }
 
 /// @brief Attempts to connect to Wi-Fi network
@@ -36,7 +36,7 @@ void WiFiConfig::connectWiFi() {
 	// if it does not connect it starts an access point with the specified name
 	// and goes into a blocking loop awaiting configuration
 	if (!wifiManager->autoConnect(ssid.c_str(), password.c_str(), 1, 10)) {
-		Serial.println("Failed to connect, we should reset as see if it connects");
+		Logger.println("Failed to connect, we should reset as see if it connects");
 		delay(3000);
 		ESP.restart();
 	}

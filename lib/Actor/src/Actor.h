@@ -6,8 +6,9 @@
 
 #pragma once
 #include <Arduino.h>
-#include <map>
 #include <DeviceConfig.h>
+#include <LogBroadcaster.h>
+#include <map>
 
 /// @brief Defines a generic signal receiver class for inheriting 
 class Actor : public DeviceConfig {

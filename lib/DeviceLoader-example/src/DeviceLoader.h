@@ -7,6 +7,7 @@
 #pragma once
 #include <Arduino.h>
 #include <EventBroadcaster.h>
+#include <LogBroadcaster.h>
 #include <SensorManager.h>
 #include <ActorManager.h>
 #include <ESP32Time.h>
@@ -19,7 +20,7 @@
 class DeviceLoader {
 	public:
 		DeviceLoader(ESP32Time* RTC);
-		bool LoadEventReceivers();
+		bool LoadReceivers();
 		bool LoadDevices();
 		
 		/******** Declare sensor, actor, and receiver objects here ********/

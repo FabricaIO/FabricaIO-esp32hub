@@ -6,8 +6,9 @@
 
 #pragma once
 #include <Arduino.h>
-#include <vector>
 #include <DeviceConfig.h>
+#include <LogBroadcaster.h>
+#include <vector>
 
 /// @brief Defines a generic sensor class for inheriting 
 class Sensor : public DeviceConfig {

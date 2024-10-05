@@ -3,7 +3,7 @@
 /// @brief Holds current firmware version
 extern const String FW_VERSION;
 
-/// @brief Indicates if te hub booted successfully
+/// @brief Indicates if the hub booted successfully
 extern bool POSTSuccess;
 
 // Initialize static variables
@@ -21,7 +21,7 @@ Webserver::Webserver(AsyncWebServer* Webserver, ESP32Time* RTC) {
 
 /// @brief Starts the update server
 bool Webserver::ServerStart() {
-	Serial.println("Starting web server");
+	Logger.println("Starting web server");
 
 	// Create root directory if needed
 	if (!Storage::fileExists("/www"))
@@ -53,7 +53,7 @@ bool Webserver::ServerStart() {
 	server->on("/delete", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if(request->hasParam("path", true)) {
 			String path = request->getParam("path", true)->value();
-			Serial.println("Deleting " + path);
+			Logger.println("Deleting " + path);
 			if (Storage::fileExists(path)) {
 				if (!Storage::deleteFile(path)) {
 					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not delete file");
@@ -306,10 +306,10 @@ bool Webserver::ServerStart() {
 			rtc->setTime(time);
 			rtc->offset = offset;
 
-			Serial.print("Set time and timezone offset to: ");
-			Serial.print(time);
-			Serial.print(" ");
-			Serial.println(offset);
+			Logger.print("Set time and timezone offset to: ");
+			Logger.print(time);
+			Logger.print(" ");
+			Logger.println(offset);
 			request->send(HTTP_CODE_OK, "text/plain", "OK");
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
@@ -324,7 +324,7 @@ bool Webserver::ServerStart() {
 
 	// Handle reset request
 	server->on("/reset", HTTP_PUT, [this](AsyncWebServerRequest *request) {
-		Serial.println("Resetting WiFi settings");
+		Logger.println("Resetting WiFi settings");
 		 if (Storage::fileExists("/www/reset.html")) {
 			request->send(*Storage::getFileSystem(), "/www/reset.html", "text/html");
 		} else {
@@ -442,7 +442,7 @@ bool Webserver::ServerStart() {
 
 /// @brief Stops the update server
 void Webserver::ServerStop() {
-	Serial.println("Stopping web server");
+	Logger.println("Stopping web server");
 	server->reset();
 	server->end();
 }
@@ -457,7 +457,7 @@ void Webserver::RebootCheckerTaskWrapper(void* arg) {
 void Webserver::RebootChecker() {
 	while (true) {
 		if (Webserver::shouldReboot) {
-			Serial.println("Rebooting from API call...");
+			Logger.println("Rebooting from API call...");
 			// Delay to show LED and let server send response
 			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Rebooting);
 			delay(3000 );
@@ -486,7 +486,7 @@ void Webserver::onUpload_file(AsyncWebServerRequest *request, String filename, s
 		String path = request->header("FILE_UPLOAD_PATH");
 		Webserver::upload_abort = false;
 		request->_tempFile = Storage::getFileSystem()->open(path + "/" + filename, "w", true);
-		Serial.println("Uploading file " + filename);
+		Logger.println("Uploading file " + filename);
 	}
 	if (Webserver::upload_abort)
 		return;
@@ -521,7 +521,7 @@ void Webserver::onUpload_file(AsyncWebServerRequest *request, String filename, s
 void Webserver::onUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 	if (!index)
 	{
-		Serial.printf("Update Start: %s\n", filename.c_str());
+		Logger.printf("Update Start: %s\n", filename.c_str());
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Updating);
 		// Ensure firmware will fit into flash space
 		if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000))
@@ -540,7 +540,7 @@ void Webserver::onUpdate(AsyncWebServerRequest *request, String filename, size_t
 	{
 		if (Update.end(true))
 		{
-			Serial.printf("Update Success: %uB\n", index + len);
+			Logger.printf("Update Success: %uB\n", index + len);
 		}
 		else
 		{

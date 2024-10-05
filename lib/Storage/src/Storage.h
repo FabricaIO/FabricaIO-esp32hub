@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include <LogBroadcaster.h>
 #include <FS.h>
 #include <SD_MMC.h>
 #include <LittleFS.h>

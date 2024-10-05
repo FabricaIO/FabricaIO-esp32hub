@@ -12,6 +12,7 @@
 #include <ESPAsyncWiFiManager.h>
 #include <ArduinoJson.h>
 #include <EventBroadcaster.h>
+#include <LogBroadcaster.h>
 
 class WiFiConfig {
 	public:

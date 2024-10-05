@@ -6,11 +6,11 @@ std::unordered_map<std::string, std::function<void(long)>> PeriodicTasks::tasks;
 /// @brief Calls all periodic tasks
 /// @param elapsed The time in ms since the previous call of callTasks
 void PeriodicTasks::callTasks(long elapsed) {
-	Serial.println("Running tasks...");
+	Logger.println("Running tasks...");
 	SensorManager::takeMeasurement();
 	for (const auto& task : tasks) {
-		Serial.print("Running task ");
-		Serial.println(task.first.c_str());
+		Logger.print("Running task ");
+		Logger.println(task.first.c_str());
 		task.second(elapsed);
 	}
 }

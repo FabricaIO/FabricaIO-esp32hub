@@ -10,6 +10,7 @@
 #pragma once
 #include <ArduinoJson.h>
 #include <Storage.h>
+#include <LogBroadcaster.h>
 
 /// @brief Holds and manages the hub configuration
 class Configuration {

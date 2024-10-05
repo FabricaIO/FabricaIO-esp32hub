@@ -18,6 +18,7 @@
 #include <SensorManager.h>
 #include <PeriodicTasks.h>
 #include <DeviceLoader.h>
+#include <LogBroadcaster.h>
 
 /// @brief Current firmware version
 extern const String FW_VERSION = "0.5.0";
@@ -27,6 +28,9 @@ bool POSTSuccess = false;
 
 /// @brief RTC object for getting/setting time
 ESP32Time rtc;
+
+/// @brief Broadcasts log messages
+LogBroadcaster logger;
 
 /// @brief AsyncWebServer object (passed to WfiFiConfig and WebServer)
 AsyncWebServer server(80);
@@ -43,11 +47,18 @@ void setup() {
 	Serial.println("Designed and created by Sam Groveman (C) 2024");
 	Serial.println();
 
-	// Load all event receivers
-	loader.LoadEventReceivers();
+	// Load all event and log receivers
+	loader.LoadReceivers();
 
+	// Start loggers
+	if (!Logger.beginReceivers())	{
+		Serial.println("Could not start all log receivers");
+		while(true);
+	}
+
+	// Start event receivers
 	if (!EventBroadcaster::beginReceivers())	{
-		Serial.println("Could not start all event receivers");
+		Logger.println("Could not start all event receivers");
 		while(true);
 	}
 
@@ -57,14 +68,14 @@ void setup() {
 	// Start storage
 	if (!Storage::begin()) {
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Could not start storage");
+		Logger.println("Could not start storage");
 		while(true);
 	}
 
 	// Start configuration manager
 	if (!Configuration::begin()) {
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Could not start configuration manager");
+		Logger.println("Could not start configuration manager");
 		while(true);
 	}
 
@@ -112,16 +123,16 @@ void setup() {
 	}
 
 	// Print the configured sensors, actors, and webhooks
-	Serial.println(SensorManager::getSensorInfo());
-	Serial.println(ActorManager::getActorInfo());
+	Logger.println(SensorManager::getSensorInfo());
+	Logger.println(ActorManager::getActorInfo());
 
 	// Start signal processor loop (8K of stack depth is probably overkill, but it does process potentially large JSON strings and we have the RAM, so better to be safe)
 	xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", 8192, NULL, 1, NULL);
 
 	// Ready!
-	Serial.println("Time: " + rtc.getDateTime());
+	Logger.println("Time: " + rtc.getDateTime());
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
-	Serial.println("System ready!");
+	Logger.println("System ready!");
 	POSTSuccess = true;
 }
 
