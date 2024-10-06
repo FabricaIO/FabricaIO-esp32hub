@@ -459,9 +459,11 @@ void Webserver::RebootChecker() {
 	while (true) {
 		if (Webserver::shouldReboot) {
 			Logger.println("Rebooting from API call...");
-			// Delay to show LED and let server send response
+			// Pause automation before reboot
+			Configuration::currentConfig.tasksEnabled = false;
+			// Delay to show event messages, let server respond, and finish any automation
 			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Rebooting);
-			delay(3000 );
+			delay(3000);
 			ESP.restart();
 		}
 		// This loop doesn't need to be tight
@@ -523,6 +525,9 @@ void Webserver::onUpdate(AsyncWebServerRequest *request, String filename, size_t
 	if (!index)
 	{
 		Logger.printf("Update Start: %s\n", filename.c_str());
+		// Pause automation during update
+		Configuration::currentConfig.tasksEnabled = false;
+		delay(100);
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Updating);
 		// Ensure firmware will fit into flash space
 		if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000))

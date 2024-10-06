@@ -5,7 +5,3 @@
 bool EventReceiver::begin() {
 	return true;
 }
-
-bool EventReceiver::receiveEvent(int event) {
-	return true;
-}

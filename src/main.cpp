@@ -148,6 +148,7 @@ void loop() {
 	if(Configuration::currentConfig.WiFiClient) {
 		// Synchronize the time every 6 hours
 		if (current_mills - previous_millis_ntp > 21600000) {
+			Logger.println("Setting time by NTP");
 			configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer.c_str());
 			previous_millis_ntp = current_mills;
 		}
@@ -155,8 +156,11 @@ void loop() {
 	if (Configuration::currentConfig.tasksEnabled) {
 		// Perform tasks periodically
 		if (current_mills - previous_mills_task > Configuration::currentConfig.period) {
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Running);
 			PeriodicTasks::callTasks(current_mills - previous_mills_task);
 			previous_mills_task = current_mills;
+			delay(100);
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 		}
 	}
 	delay(100);

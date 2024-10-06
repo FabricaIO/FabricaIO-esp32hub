@@ -20,5 +20,5 @@ class LogReceiver {
 
 		virtual bool begin();
 		virtual bool receiveMessage(String message) = 0;
-		virtual bool receiveChar(char c) = 0;
+		virtual bool receiveMessage(char message) = 0;
 };

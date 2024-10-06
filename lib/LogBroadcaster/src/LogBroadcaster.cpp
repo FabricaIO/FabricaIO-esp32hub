@@ -50,7 +50,7 @@ String LogBroadcaster::getReceiverVersions() {
 /// @return The number of bytes written (1)
 size_t LogBroadcaster::write(uint8_t c) {
 	for (const auto& r : receivers) {
-		if (!r->receiveChar((char)c)) {
+		if (!r->receiveMessage((char)c)) {
 			return false;
 		}
 	}

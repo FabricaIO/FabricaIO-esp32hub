@@ -20,5 +20,5 @@ class EventReceiver {
 		} Description;
 
 		virtual bool begin();
-		virtual bool receiveEvent(int event);
+		virtual bool receiveEvent(int event) = 0;
 };
