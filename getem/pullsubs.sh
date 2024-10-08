@@ -1,5 +1,9 @@
+#!/usr/bin/env bash
 # FabricaIO-esp32hub extra modules
 # 
+
+START_DIR=${PWD}
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # List of subs to pull
 declare -a subs=( 
@@ -25,7 +29,7 @@ declare -a subs=(
 length=${#subs[@]}
 echo "Updating $length repos..."
 
-cd ../lib
+cd ${SCRIPT_DIR}/lib
 
 for i in "${subs[@]}"
 do
@@ -39,6 +43,6 @@ do
     fi
 done
 
-cd ..
+cd ${START_DIR}
 
 # You can access them using echo "${arr[0]}", "${arr[1]}" also
