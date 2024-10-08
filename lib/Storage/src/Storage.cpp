@@ -9,7 +9,7 @@ FS* Storage::storageSystem = &LittleFS;
 bool Storage::begin() {
 	storageSystem = &LittleFS;
 	storageMedia = Storage::Media::LittleFS;
-	Serial.println("Mounting  LittleFS, this could take a while, please wait...");
+	Logger.println("Mounting  LittleFS, this could take a while, please wait...");
 	return LittleFS.begin(true, "/sd");
 }
 
@@ -25,28 +25,28 @@ bool Storage::begin(int mi, int mo, int sck, int cs) {
 	// Start SPI bus
 	SPI.begin(sck, mi, mo);
 	bool success = true;
-	Serial.println("Mounting storage...");
+	Logger.println("Mounting storage...");
 	if (!SD.begin(cs)) {
-		Serial.println("Card mount failed, might need to format card as FAT32 or reduce clock frequency");
+		Logger.println("Card mount failed, might need to format card as FAT32 or reduce clock frequency");
 		success = false;
 	} else {
 		uint8_t cardType = SD.cardType();
 		if (cardType == CARD_NONE) {
-			Serial.println("No SD card attached. Must be formatted as FAT32");
+			Logger.println("No SD card attached. Must be formatted as FAT32");
 			success = false;
 		} else {
-			Serial.print("SD card type: ");
+			Logger.print("SD card type: ");
 			if (cardType == CARD_MMC) {
-				Serial.println("MMC");
+				Logger.println("MMC");
 			} else if (cardType == CARD_SD) {
-				Serial.println("SDSC");
+				Logger.println("SDSC");
 			} else if (cardType == CARD_SDHC) {
-				Serial.println("SDHC");
+				Logger.println("SDHC");
 			} else {
-				Serial.println("UNKNOWN");
+				Logger.println("UNKNOWN");
 			}
 			uint64_t cardSize = SD_MMC.cardSize() / 1048576; // 1024 * 1024
-			Serial.printf("SD_MMC card size: %lluMB\n", cardSize);
+			Logger.printf("SD_MMC card size: %lluMB\n", cardSize);
 		}
 	}
 	return success;
@@ -65,29 +65,29 @@ bool Storage::begin(int clk, int cmd, int d0, int d1, int d2, int d3) {
 	storageMedia = Storage::Media::SD_MMC;
 	bool success = SD_MMC.setPins(clk, cmd, d0, d1, d2, d3);
 	if (success) {
-		Serial.println("Mounting storage...");
+		Logger.println("Mounting storage...");
 		if (!SD_MMC.begin("/sd", false, true, 40000)) {
-			Serial.println("Card mount failed, might need to reduce sd_mmc frequency to 10000");
+			Logger.println("Card mount failed, might need to reduce sd_mmc frequency to 10000");
 			success = false;
 		} else {
 			uint8_t cardType = SD_MMC.cardType();
 
 			if(cardType == CARD_NONE) {
-				Serial.println("No SD_MMC card attached");
+				Logger.println("No SD_MMC card attached");
 				success = false;
 			} else {
-				Serial.print("SD_MMC card type: ");
+				Logger.print("SD_MMC card type: ");
 				if (cardType == CARD_MMC) {
-					Serial.println("MMC");
+					Logger.println("MMC");
 				} else if(cardType == CARD_SD) {
-					Serial.println("SDSC");
+					Logger.println("SDSC");
 				} else if(cardType == CARD_SDHC) {
-					Serial.println("SDHC");
+					Logger.println("SDHC");
 				} else {
-					Serial.println("UNKNOWN");
+					Logger.println("UNKNOWN");
 				}
 				uint64_t cardSize = SD_MMC.cardSize() / 1048576; // 1024 * 1024
-				Serial.printf("SD_MMC card size: %lluMB\n", cardSize);
+				Logger.printf("SD_MMC card size: %lluMB\n", cardSize);
 			}
 		}
 	}
@@ -111,22 +111,22 @@ Storage::Media Storage::getMediaType() {
 /// @param levels How many levels to recurse into the directory for listing
 /// @return A collection of strings of full paths of the files found
 std::vector<String> Storage::listFiles(String dirname, uint8_t levels) {
-	Serial.println("Listing directory: " + dirname);
+	Logger.println("Listing directory: " + dirname);
 	std::vector<String> folderContents;
 	File root = storageSystem->open(dirname);
 	if(!root){
-		Serial.println("Failed to open directory");
+		Logger.println("Failed to open directory");
 		return folderContents;
 	}
 	if (!root.isDirectory()) {
-		Serial.println("Not a directory");
+		Logger.println("Not a directory");
 		return folderContents;
 	}
 	File file = root.openNextFile();
 	while(file) {
 		if(file.isDirectory()) {
-			Serial.print("  DIR : ");
-			Serial.println(file.name());
+			Logger.print("  DIR : ");
+			Logger.println(file.name());
 			if(levels) {
 				// Recurse and add subdir contents to file list
 				for (const auto& f : listFiles(file.path(), levels - 1)) {
@@ -146,22 +146,22 @@ std::vector<String> Storage::listFiles(String dirname, uint8_t levels) {
 /// @param levels How many levels to recurse into the directory for listing
 /// @return A collection of strings of full paths of the directories
 std::vector<String> Storage::listDirs(String dirname, uint8_t levels) {
-	Serial.println("Listing directory: " + dirname);
+	Logger.println("Listing directory: " + dirname);
 	std::vector<String> folderContents;
 	File root = storageSystem->open(dirname);
 	if(!root){
-		Serial.println("Failed to open directory");
+		Logger.println("Failed to open directory");
 		return folderContents;
 	}
 	if (!root.isDirectory()) {
-		Serial.println("Not a directory");
+		Logger.println("Not a directory");
 		return folderContents;
 	}
 	File file = root.openNextFile();
 	while(file) {
 		if(file.isDirectory()) {
 			folderContents.push_back(String(file.path()));
-			Serial.println(file.name());
+			Logger.println(file.name());
 			if(levels) {
 				// Recurse and add subdir contents to file list
 				for (const auto& d : listDirs(file.path(), levels - 1)) {
@@ -178,7 +178,7 @@ std::vector<String> Storage::listDirs(String dirname, uint8_t levels) {
 /// @param path The path of the file or directory
 /// @return True if it exists
 bool Storage::fileExists(String path) {
-	Serial.println("Checking for file: " + path);
+	Logger.println("Checking for file: " + path);
 	return storageSystem->exists(path);
 }
 
@@ -186,7 +186,7 @@ bool Storage::fileExists(String path) {
 /// @param path The path of the directory to create
 /// @return True on success
 bool Storage::createDir(String path) {
-	Serial.println("Creating Dir: " + path);
+	Logger.println("Creating Dir: " + path);
 	return storageSystem->mkdir(path);;
 }
 
@@ -194,7 +194,7 @@ bool Storage::createDir(String path) {
 /// @param path The path of the directory to remove
 /// @return True on success
 bool Storage::removeDir(String path) {
-	Serial.println("Removing Dir:" + path);
+	Logger.println("Removing Dir:" + path);
 	return storageSystem->rmdir(path);
 }
 
@@ -202,10 +202,10 @@ bool Storage::removeDir(String path) {
 /// @param path The path of the file to read
 /// @return A String of the file contents, empty string on failure
 String Storage::readFile(String path) {
-	Serial.println("Reading file: " + path);
+	Logger.println("Reading file: " + path);
 	File file = storageSystem->open(path);
 	if (!file) {
-		Serial.println("Failed to open file for reading");
+		Logger.println("Failed to open file for reading");
 		return "";
 	}
 	String output = "";
@@ -221,10 +221,10 @@ String Storage::readFile(String path) {
 /// @param content The content of the file to write
 /// @return True on success
 bool Storage::writeFile(String path, String content) {
-	Serial.println("Writing file: " + path);
+	Logger.println("Writing file: " + path);
 	File file = storageSystem->open(path, FILE_WRITE);
 	if (!file) {
-		Serial.println("Failed to open file for writing");
+		Logger.println("Failed to open file for writing");
 		return false;
 	}
 	return file.print(content) > 0;
@@ -235,10 +235,10 @@ bool Storage::writeFile(String path, String content) {
 /// @param content The content to append
 /// @return True on success
 bool Storage::appendToFile(String path, String content) {
-	Serial.println("Appending to file: " + path);
+	Logger.println("Appending to file: " + path);
 	File file = storageSystem->open(path, FILE_APPEND);
 	if (!file) {
-		Serial.println("Failed to open file for appending");
+		Logger.println("Failed to open file for appending");
 		return false;
 	}
 	return file.print(content) > 0;
@@ -249,7 +249,7 @@ bool Storage::appendToFile(String path, String content) {
 /// @param path2 The new path/name of the file
 /// @return True on success
 bool Storage::renameFile(String path1, String path2) {
-	Serial.println("Renaming file" + path1 + " to " + path2);
+	Logger.println("Renaming file" + path1 + " to " + path2);
 	return storageSystem->rename(path1, path2);
 }
 
@@ -257,7 +257,7 @@ bool Storage::renameFile(String path1, String path2) {
 /// @param path The path of the file to delete
 /// @return True on success
 bool Storage::deleteFile(String path) {
-	Serial.println("Deleting file: " + path);
+	Logger.println("Deleting file: " + path);
 	return storageSystem->remove(path);
 }
 

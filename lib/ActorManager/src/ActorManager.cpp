@@ -19,10 +19,10 @@ bool ActorManager::addActor(Actor* actor) {
 bool ActorManager::beginActors() {
 	for (auto const &a : actors) {
 		if (!a->begin()) {
-			Serial.println("Could not start " + a->Description.name);
+			Logger.println("Could not start " + a->Description.name);
 			return false;
 		} else {
-			Serial.println("Started " + a->Description.name);
+			Logger.println("Started " + a->Description.name);
 		}
 	}
 	return true;
@@ -36,7 +36,7 @@ bool ActorManager::beginActors() {
 bool ActorManager::addActionToQueue(int actorPosID, String action, String payload) {
 	// Check if receiver is in-use
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
-		Serial.println("Receiver position Id out of range");
+		Logger.println("Receiver position Id out of range");
 		return false;
 	}
 
@@ -45,7 +45,7 @@ bool ActorManager::addActionToQueue(int actorPosID, String action, String payloa
 	try {
 		action_id = actors[actorPosID]->Description.actions.at("actor");
 	} catch (const std::out_of_range& e) {
-		Serial.println("Actor cannot process action");
+		Logger.println("Actor cannot process action");
 		return false;
 	}
 
@@ -61,7 +61,7 @@ bool ActorManager::addActionToQueue(int actorPosID, String action, String payloa
 bool ActorManager::addActionToQueue(int actorPosID, int action, String payload) {
 	// Check if receiver is in-use
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
-		Serial.println("Receiver position ID out of range");
+		Logger.println("Receiver position ID out of range");
 		return false;
 	}
 
@@ -70,7 +70,7 @@ bool ActorManager::addActionToQueue(int actorPosID, int action, String payload) 
 
 	// Add actor array to queue
 	if (xQueueSend(actorQueue, &new_action, 10) != pdTRUE) {
-		Serial.println("Actor queue full");
+		Logger.println("Actor queue full");
 		return false;
 	}
 	// Add payload to queue
@@ -156,7 +156,7 @@ String ActorManager::getActorVersions() {
 std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, String action, String payload) {
 	// Check if receiver is in-use
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
-		Serial.println("Receiver position Id out of range");
+		Logger.println("Receiver position Id out of range");
 		return { true, R"({"success": false})" };
 	}
 
@@ -165,7 +165,7 @@ std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, 
 	try {
 		actor_id = actors[actorPosID]->Description.actions.at(action);
 	} catch (const std::out_of_range& e) {
-		Serial.println("Receiver cannot process actor");
+		Logger.println("Receiver cannot process actor");
 		return{ true, R"({"success": false})" };
 	}
 	// Process actor
@@ -180,7 +180,7 @@ std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, 
 std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, int action, String payload) {
 	// Check if receiver is in-use
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
-		Serial.println("Receiver position ID out of range");
+		Logger.println("Receiver position ID out of range");
 		return { true, R"({"success": false})" };
 	}
 	// Process actor

@@ -6,15 +6,16 @@
 
 #pragma once
 #include <Arduino.h>
-#include <map>
 #include <DeviceConfig.h>
+#include <LogBroadcaster.h>
+#include <map>
 
-/// @brief Defines a generic signal receiver class for inheriting 
+/// @brief Defines a generic actions class for inheriting 
 class Actor : public DeviceConfig {
 	public:
-		/// @brief Holds the description of the device capable of receiving signals
+		/// @brief Holds the description of the device
 		struct {
-			/// @brief The number of signals this device can receive
+			/// @brief The number of actions this device can perform
 			int actionQuantity;
 
 			/// @brief The type of device this is
@@ -23,7 +24,7 @@ class Actor : public DeviceConfig {
 			/// @brief The name of this device
 			String name;
 			
-			/// @brief Contains of map of signals this device can receive and their ID numbers. Signal names must contain only alphanumeric and underscores, and contain at least one letter
+			/// @brief Contains of map of actions this device can perform and their ID numbers. Actor names must contain only alphanumeric and underscores, and contain at least one letter
 			std::map<String, int> actions;
 
 			/// @brief The ID of this device

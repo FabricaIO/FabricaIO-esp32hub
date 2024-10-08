@@ -17,10 +17,10 @@ bool SensorManager::addSensor(Sensor* sensor) {
 bool SensorManager::beginSensors() {
 	for (auto const &s : sensors) {
 		if (!s->begin()) {
-			Serial.println("Could not start " + s->Description.name);
+			Logger.println("Could not start " + s->Description.name);
 			return false;
 		} else {
-			Serial.println("Started " + s->Description.name);
+			Logger.println("Started " + s->Description.name);
 		}
 	}
 	return true;
@@ -35,7 +35,7 @@ bool SensorManager::takeMeasurement() {
 	for (auto const &s : sensors) {
 		if (!s->takeMeasurement())
 		{
-			Serial.println("Error taking measurement from " + s->Description.name);
+			Logger.println("Error taking measurement from " + s->Description.name);
 			return false;
 		}
 		// Add measurements to results
@@ -142,7 +142,7 @@ String SensorManager::getSensorVersions() {
 /// @return A tuple with the fist element as a Sensor::calibration_response and the second an optional message String accompanying the response
 std::tuple<Sensor::calibration_response, String> SensorManager::calibrateSensor(int sensorPosID, int step) {
 	if (sensorPosID < 0 || sensorPosID >= sensors.size()) {
-		Serial.println("sensorPosID out of range");
+		Logger.println("sensorPosID out of range");
 		return { Sensor::calibration_response::error, "sensorPosID out of range" };
 	}
 	return sensors[sensorPosID]->calibrate(step);

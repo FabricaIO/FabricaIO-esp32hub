@@ -6,7 +6,7 @@ bool Actor::begin() {
 	return false;
 }
 
-/// @brief Receives and reacts to a signal
+/// @brief Receives and reacts to an action
 /// @param action The signal ID number to react to
 /// @param payload An optional JSON string for data payload
 /// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted

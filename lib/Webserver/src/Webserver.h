@@ -24,6 +24,7 @@
 #include <ActorManager.h>
 #include <HTTPClient.h>
 #include <EventBroadcaster.h>
+#include <LogBroadcaster.h>
 #include <vector>
 
 /// @brief Local web server.

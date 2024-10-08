@@ -8,7 +8,7 @@ DeviceLoader::DeviceLoader(ESP32Time* RTC) {
 
 /// @brief Loads all event receivers
 /// @return True on success
-bool DeviceLoader::LoadEventReceivers() {
+bool DeviceLoader::LoadReceivers() {
 
 	/******** Add event receivers and loggers here ********/
 

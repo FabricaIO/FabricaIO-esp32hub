@@ -10,9 +10,9 @@ Configuration::config Configuration::currentConfig;
 bool Configuration::begin(String File) {
 	file = "/settings/" + File;
 	if (!Storage::fileExists("/settings")) {
-		Serial.println("Creating settings directory");
+		Logger.println("Creating settings directory");
 		if (!Storage::createDir("/settings")) {
-			Serial.println("Could not create settings directory");
+			Logger.println("Could not create settings directory");
 			return false;
 		}
 	}
@@ -24,7 +24,7 @@ bool Configuration::begin(String File) {
 bool Configuration::loadConfig() {
 	String json_string = Storage::readFile(file);
 	if (json_string == "") {
-		Serial.println("Could not load config file, or it doesn't exist. Defaults used.");
+		Logger.println("Could not load config file, or it doesn't exist. Defaults used.");
 		json_string = configToJSON();
 	}
 	return updateConfig(json_string);
@@ -40,9 +40,9 @@ bool Configuration::updateConfig(String config) {
 	DeserializationError error = deserializeJson(doc, config);
 	// Test if parsing succeeds.
 	if (error) {
-		Serial.print(F("Deserialization failed: "));
-		Serial.println(error.f_str());
-		Serial.println("Defaults used");
+		Logger.print(F("Deserialization failed: "));
+		Logger.println(error.f_str());
+		Logger.println("Defaults used");
 		return false;
 	}
 	// Assign loaded values
@@ -61,7 +61,7 @@ bool Configuration::updateConfig(String config) {
 	if (currentConfig.WiFiClient) {
 		// Set local time via NTP
 		configTime(currentConfig.gmtOffset_sec, currentConfig.daylightOffset_sec, currentConfig.ntpServer.c_str());
-		Serial.println("Time set via NTP");
+		Logger.println("Time set via NTP");
 	}
 	return true;
 }
@@ -77,7 +77,7 @@ bool Configuration::saveConfig() {
 /// @return True on success
 bool Configuration::saveConfig(String config) {
 	if(!Storage::writeFile(file, config)) {
-		Serial.println("Could not write config file");
+		Logger.println("Could not write config file");
 		return false;
 	}
 	return true;

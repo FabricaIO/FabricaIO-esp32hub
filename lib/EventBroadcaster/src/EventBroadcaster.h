@@ -1,13 +1,17 @@
 /*
 * This file and associated .cpp file are licensed under the GPLv3 License Copyright (c) 2024 Sam Groveman
+* 
+* External libraries needed:
+* ArduinoJSON: https://arduinojson.org/
+*
 * Contributors: Sam Groveman
 */
 
 #pragma once
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <vector>
 #include <EventReceiver.h>
+#include <vector>
 
 /// @brief Broadcasts device events
 class EventBroadcaster {
