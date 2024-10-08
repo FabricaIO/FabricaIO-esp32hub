@@ -6,30 +6,31 @@ START_DIR=${PWD}
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # List of subs to pull
-declare -a subs=( 
-    "sensor-GenericAnalogInput" 
-    "util-Webhook" 
+declare -a subs=(
+    "actor-DataTemplate"
     "actor-DFAutoPeristalticPump" 
-    "actor-DFPeristalticPump" 
-    "util-ParameterTrigger" 
-    "sensor-DFSoilMoisture" 
-    "sensor-DFMultiEnvironmental" 
-    "sensor-DFGasSensor" 
-    "sensor-DFCO2Sensor" 
-    "sensor-DFAirquality" 
-    "actor-TimerSwitch" 
-    "actor-ResetButton" 
-    "actor-LocalDataLogger" 
+    "actor-DFPeristalticPump"
     "actor-GenericOutput" 
-    "actor-DataTemplate" 
-    "eventreceiver-LEDIndicator" 
-    "sensor-DummySensor" 
+    "actor-LocalDataLogger" 
+    "actor-ResetButton"
+    "actor-TimerSwitch"
+    "eventreceiver-LEDIndicator"
+    "logreceiver-SerialLogger"
+    "sensor-DFAirquality"
+    "sensor-DFCO2Sensor"
+    "sensor-DFGasSensor" 
+    "sensor-DFMultiEnvironmental" 
+    "sensor-DFSoilMoisture"  
+    "sensor-DummySensor"
+    "sensor-GenericAnalogInput"
+    "util-ParameterTrigger"
+    "util-Webhook"
     )
 
 length=${#subs[@]}
 echo "Updating $length repos..."
 
-cd ${SCRIPT_DIR}/lib
+cd ${SCRIPT_DIR}/../lib
 
 for i in "${subs[@]}"
 do
