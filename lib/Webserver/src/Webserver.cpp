@@ -13,10 +13,8 @@ int Webserver::upload_response_code = 201;
 
 /// @brief Creates a Webserver object
 /// @param Webserver A pointer to an AsyncWebServer object
-/// @param RTC A pointer to a ESP32Time object
-Webserver::Webserver(AsyncWebServer* Webserver, ESP32Time* RTC) {
+Webserver::Webserver(AsyncWebServer* Webserver) {
 	server = Webserver;
-	//rtc = RTC;
 }
 
 /// @brief Starts the update server
@@ -292,24 +290,20 @@ bool Webserver::ServerStart() {
 
 	// Gets the time on the device
 	server->on("/time", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send(HTTP_CODE_OK, "text/plain", String(rtc.getLocalEpoch()));
+		request->send(HTTP_CODE_OK, "text/plain", String(TimeInterface::getLocalEpoch()));
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
 	// Sets the time on the device
 	server->on("/time", HTTP_POST, [this](AsyncWebServerRequest *request) {
-		if (request->hasParam("time", true) && request->hasParam("offset", true)) {
+		if (request->hasParam("time", true)) {
 			// Parse data payload
 			long time = request->getParam("time", true)->value().toInt();
-			long offset = request->getParam("offset", true)->value().toInt();
 			
 			// Apply time settings
-			rtc.setTime(time);
-			rtc.offset = offset;
+			TimeInterface::setTime(time);
 
-			Logger.print("Set time and timezone offset to: ");
-			Logger.print(time);
-			Logger.print(" ");
-			Logger.println(offset);
+			Logger.print("Set time to: ");
+			Logger.println(TimeInterface::getDateTime());
 			request->send(HTTP_CODE_OK, "text/plain", "OK");
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");

@@ -17,7 +17,7 @@
 #include <SD_MMC.h>
 #include <LittleFS.h>
 #include <SD.h>
-#include <ESP32Time.h>
+#include <TimeInterface.h>
 #include <Storage.h>
 #include <Configuration.h>
 #include <SensorManager.h>
@@ -30,7 +30,7 @@
 /// @brief Local web server.
 class Webserver {
 	public:		
-		Webserver(AsyncWebServer* webserver, ESP32Time* RTC);
+		Webserver(AsyncWebServer* webserver);
 		bool ServerStart();
 		void ServerStop();
 		static void RebootCheckerTaskWrapper(void* arg);
@@ -38,9 +38,6 @@ class Webserver {
 	private:
 		/// @brief Pointer to the Webserver object
 		AsyncWebServer* server;
-
-		/// @brief RTC object for setting and getting time of device
-        ESP32Time rtc;
 
 		/// @brief Used to indicate an upload had to be aborted
 		static bool upload_abort;

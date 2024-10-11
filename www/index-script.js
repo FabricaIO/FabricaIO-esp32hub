@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	};
 	
 	document.getElementById("settime").onclick = function() {
-		POSTRequest('/time', "Time set", { time:  Math.floor(new Date().getTime() / 1000), offset: 0 - new Date().getTimezoneOffset() * 60 });
+		POSTRequest('/time', "Time set", { time:  Math.floor(new Date().getTime() / 1000) });
 	};
 
 });

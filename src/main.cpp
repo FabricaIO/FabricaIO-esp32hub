@@ -8,7 +8,6 @@
 #include <Webserver.h>
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncWiFiManager.h>
-#include <ESP32Time.h>
 #include <Storage.h>
 #include <Configuration.h>
 #include <EventBroadcaster.h>
@@ -18,6 +17,7 @@
 #include <SensorManager.h>
 #include <PeriodicTasks.h>
 #include <DeviceLoader.h>
+#include <TimeInterface.h>
 #include <LogBroadcaster.h>
 
 /// @brief Current firmware version
@@ -26,9 +26,6 @@ extern const String FW_VERSION = "0.5.0";
 /// @brief Set to true when the POST finishes successfully
 bool POSTSuccess = false;
 
-/// @brief RTC object for getting/setting time
-ESP32Time rtc;
-
 /// @brief Broadcasts log messages
 LogBroadcaster logger;
 
@@ -36,7 +33,7 @@ LogBroadcaster logger;
 AsyncWebServer server(80);
 
 /// @brief Loads all actor, sensor, and event receiver devices
-DeviceLoader loader(&rtc);
+DeviceLoader loader;
 
 void setup() {
 	// Start serial
@@ -90,15 +87,13 @@ void setup() {
 		configurator.connectWiFi();
 		WiFi.setAutoReconnect(true);
 		server.reset();
-		// Set local time via NTP once connected
-		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer.c_str());
 	} else {
 		// Start AP
 		WiFi.softAP(Configuration::currentConfig.configSSID, Configuration::currentConfig.configPW);
 	}
 	
 	/// @brief Webserver handling all requests
-	Webserver webserver(&server, &rtc);
+	Webserver webserver(&server);
 
 	// Clear server settings, just in case
 	webserver.ServerStop();
@@ -129,8 +124,13 @@ void setup() {
 	// Start signal processor loop (8K of stack depth is probably overkill, but it does process potentially large JSON strings and we have the RAM, so better to be safe)
 	xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", 8192, NULL, 1, NULL);
 
+	// Set time via NTP if needed
+	if (Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
+		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer.c_str());
+	}
+
 	// Ready!
-	Logger.println("Time: " + rtc.getDateTime());
+	Logger.println("Time: " + TimeInterface::getDateTime());
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 	Logger.println("System ready!");
 	POSTSuccess = true;
