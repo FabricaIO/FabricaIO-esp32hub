@@ -19,7 +19,6 @@
 /// @brief Allows for loading of sensor, actor, and receiver devices
 class DeviceLoader {
 	public:
-		DeviceLoader(ESP32Time* RTC);
 		bool LoadReceivers();
 		bool LoadDevices();
 		
@@ -27,7 +26,4 @@ class DeviceLoader {
 
 		/******** End sensor, actor, and receiver object declarations ********/
 
-	private:
-		/// @brief Pointer to an ESP32Time object to use
-		ESP32Time* rtc;
 };
