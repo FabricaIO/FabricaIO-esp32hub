@@ -116,6 +116,7 @@ async function downloadBackup() {
 async function restoreBackup() {
 	const selectedFile = document.getElementById("up-file").files[0];
 	const reader = new FileReader();
+	document.getElementById('message').innerHTML = 'Beginning restore...';
 	reader.onload = async function(file) {
 		let files = JSON.parse(file.target.result);
 		let i = 0;
@@ -127,11 +128,11 @@ async function restoreBackup() {
 			});
 			// Wait for file to be restored before proceeding
 			while (!restored) {
-				await new Promise(r => setTimeout(r, 50))
+				await new Promise(r => setTimeout(r, 50));
 			}
 			restored = false;
 		}
-		document.getElementById('message').innerHTML = 'Restore successful!'
+		document.getElementById('message').innerHTML = 'Restore successful!';
 		getFreeStorage();
 		updateFileList();
 	};

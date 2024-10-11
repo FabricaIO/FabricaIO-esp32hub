@@ -163,9 +163,8 @@ const char index_page[] = R"(<!DOCTYPE html>
 </div>
 <div id='message'></div>
 <input type='file' id='up-file' disabled>
-<label class='def-button' for='up-file' id='up-label'>
-	Upload
-</label>
+<button class='def-button' id='up-button'>Upload</button>
+<button class='def-button' id='restore'>Restore from Backup</button>
 <a class='def-button' id='update' href='/update'>Update Firmware</a>
 <button class='def-button' id='reboot'>Reboot Device</button>
 <button class='def-button' id='reset'>Reset WiFi Settings</button>
@@ -180,7 +179,7 @@ var uprog = {
 		uprog.hPercent = document.getElementById('up-percent');
 		uprog.hFile = document.getElementById('up-file');
 		uprog.hFile.disabled = false;
-		document.getElementById('up-label').onclick = uprog.upload;
+		document.getElementById('up-button').onclick = uprog.upload;
 	},
 	update : (percent) => {
 	let Percent = percent + '%';
@@ -228,6 +227,33 @@ document.getElementById("reboot").onclick = function() {
 document.getElementById("reset").onclick = function() {
 	PUTRequest("/reset");
 };
+document.getElementById("restore").onclick = function() {
+	console.log("test");
+	restoreBackup();
+};
+async function restoreBackup() {
+	const selectedFile = document.getElementById("up-file").files[0];
+	const reader = new FileReader();
+	document.getElementById('message').innerHTML = 'Beginning restore...';
+	reader.onload = async function(file) {
+		let files = JSON.parse(file.target.result);
+		let i = 0;
+		let restored = false;
+		for (let file in files) {
+			POSTRequest('/restorefile', 'File ' + file + ' restored', {"path": file, "contents": files[file]}, async function() {
+				await new Promise(r => setTimeout(r, 50))
+				restored = true;
+			});
+			// Wait for file to be restored before proceeding
+			while (!restored) {
+				await new Promise(r => setTimeout(r, 50));
+			}
+			restored = false;
+		}
+		document.getElementById('message').innerHTML = 'Restore successful!';
+	};
+	reader.readAsText(selectedFile);
+}
 function PUTRequest(path) {
 	let xhr = new XMLHttpRequest();
 	xhr.open('PUT', path);
@@ -239,6 +265,29 @@ function PUTRequest(path) {
 		}
 	};
 	xhr.send();
+}
+function POSTRequest(path, successMessage, params = {}, callback = null) {
+	let xhr = new XMLHttpRequest(), data = new FormData();
+	xhr.responseType = 'json';
+	if (Object.keys(params).length !== 0 ) {
+		for (let param in params) {
+			data.append(param, params[param]);
+		}
+	}
+	xhr.open('POST', path);
+	xhr.onload = function() {
+		if (this.status !== 200) {
+			document.getElementById('message').innerHTML = this.response;
+		} else {
+			document.getElementById('message').innerHTML = successMessage;
+			if (callback !== null) {
+				let response = xhr.response;
+				console.log(response);
+				callback(response);
+			}
+		}
+	};
+	xhr.send(data); 
 }
 </script>
 <style>
