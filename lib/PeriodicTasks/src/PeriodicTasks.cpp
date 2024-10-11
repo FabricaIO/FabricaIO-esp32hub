@@ -27,7 +27,10 @@ bool PeriodicTasks::taskExists(std::string name) {
 /// @param callback A pointer to the function callback
 /// @return True on success
 bool PeriodicTasks::addTask(std::string name, std::function<void(long)> callback) {
+	Logger.println("Adding tasks...");
 	if (!taskExists(name)) {
+		Logger.print("Adding task ");
+		Logger.println(name.c_str());
 		return tasks.emplace(name, callback).second;
 	}
 	return true;

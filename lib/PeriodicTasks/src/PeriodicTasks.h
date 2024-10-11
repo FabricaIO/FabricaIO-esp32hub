@@ -3,7 +3,7 @@
 * Contributors: Sam Groveman
 */
 #pragma once
-#include<Arduino.h>
+#include <Arduino.h>
 #include <SensorManager.h>
 #include <LogBroadcaster.h>
 #include <unordered_map>
