@@ -40,7 +40,7 @@ class Webserver {
 		AsyncWebServer* server;
 
 		/// @brief RTC object for setting and getting time of device
-        ESP32Time* rtc;
+        ESP32Time rtc;
 
 		/// @brief Used to indicate an upload had to be aborted
 		static bool upload_abort;

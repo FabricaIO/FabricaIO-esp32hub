@@ -16,7 +16,7 @@ int Webserver::upload_response_code = 201;
 /// @param RTC A pointer to a ESP32Time object
 Webserver::Webserver(AsyncWebServer* Webserver, ESP32Time* RTC) {
 	server = Webserver;
-	rtc = RTC;
+	//rtc = RTC;
 }
 
 /// @brief Starts the update server
@@ -292,7 +292,7 @@ bool Webserver::ServerStart() {
 
 	// Gets the time on the device
 	server->on("/time", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send(HTTP_CODE_OK, "text/plain", String(rtc->getLocalEpoch()));
+		request->send(HTTP_CODE_OK, "text/plain", String(rtc.getLocalEpoch()));
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
 	// Sets the time on the device
@@ -303,8 +303,8 @@ bool Webserver::ServerStart() {
 			long offset = request->getParam("offset", true)->value().toInt();
 			
 			// Apply time settings
-			rtc->setTime(time);
-			rtc->offset = offset;
+			rtc.setTime(time);
+			rtc.offset = offset;
 
 			Logger.print("Set time and timezone offset to: ");
 			Logger.print(time);
@@ -330,7 +330,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_OK, "text/plain", "OK");
 		}
-		WiFi.mode(WIFI_AP_STA); // cCannot erase if not in STA mode !
+		WiFi.mode(WIFI_AP_STA); // Cannot erase if not in STA mode !
 		WiFi.persistent(true);
 		WiFi.disconnect(true, true);
 		WiFi.persistent(false);

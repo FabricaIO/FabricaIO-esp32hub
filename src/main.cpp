@@ -145,7 +145,7 @@ ulong previous_millis_ntp = 0;
 
 void loop() {
 	current_mills = millis();
-	if(Configuration::currentConfig.WiFiClient) {
+	if(Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
 		// Synchronize the time every 6 hours
 		if (current_mills - previous_millis_ntp > 21600000) {
 			Logger.println("Setting time by NTP");
