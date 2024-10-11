@@ -1,11 +1,5 @@
 #include "DeviceLoader.h"
 
-/// @brief Creates a new Device Loader
-/// @param RTC A pointer to the RTC object to use
-DeviceLoader::DeviceLoader(ESP32Time* RTC) {
-	rtc = RTC;
-}
-
 /// @brief Loads all event receivers
 /// @return True on success
 bool DeviceLoader::LoadReceivers() {
