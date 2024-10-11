@@ -386,6 +386,19 @@ bool Webserver::ServerStart() {
 			// Change to Unix line endings to save space
 			String content = request->getParam("contents", true)->value();
 			content.replace("\r\n", "\n");
+			// Check for, and create, directories
+			size_t pos = 0;
+			String path_builder = "";
+			// Remove starting '/'
+			String path = request->getParam("path", true)->value();
+			path.remove(0,1);
+			while ((pos = path.indexOf('/')) != -1) {
+				path_builder += "/" + path.substring(0, pos);
+				if (!Storage::fileExists(path_builder)) {
+					Storage::createDir(path_builder);
+				}
+				path.remove(0, pos + 1);
+			}
 			if(Storage::writeFile(request->getParam("path", true)->value(), content)) {
 				request->send(HTTP_CODE_OK, "text/plain", "File restored");
 			} else {
