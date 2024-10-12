@@ -126,11 +126,13 @@ void setup() {
 
 	// Set time via NTP if needed
 	if (Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
-		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer.c_str());
+		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
 	}
-
-	// Ready!
+	// Give info to user
 	Logger.println("Time: " + TimeInterface::getDateTime());
+	Logger.print("IP Address: ");
+	Logger.println(WiFi.localIP().toString());
+	// Ready!
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 	Logger.println("System ready!");
 	POSTSuccess = true;
@@ -149,7 +151,7 @@ void loop() {
 		// Synchronize the time every 6 hours
 		if (current_mills - previous_millis_ntp > 21600000) {
 			Logger.println("Setting time by NTP");
-			configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer.c_str());
+			configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
 			previous_millis_ntp = current_mills;
 		}
 	}

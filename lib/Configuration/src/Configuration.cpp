@@ -51,6 +51,9 @@ bool Configuration::updateConfig(String config) {
 	currentConfig.webUsername = doc["webUsername"] | "Fabrica";
 	currentConfig.webPassword = doc["webPassword"] | "Fabrica";
 	currentConfig.useNTP = doc["useNTP"] | true;;
+	currentConfig.ntpServer1 = doc["ntpServer1"].as<String>();
+	currentConfig.ntpServer2 = doc["ntpServer2"].as<String>();
+	currentConfig.ntpServer3 = doc["ntpServer3"].as<String>();
 	currentConfig.hostname = doc["hostname"].as<String>();
 	currentConfig.daylightOffset_sec = doc["gmtOffset"].as<int>();
 	currentConfig.gmtOffset_sec = doc["daylightOffset"].as<long>();
@@ -60,7 +63,7 @@ bool Configuration::updateConfig(String config) {
 	currentConfig.hostname = doc["hostname"].as<String>();
 	if (currentConfig.WiFiClient) {
 		// Set local time via NTP
-		configTime(currentConfig.gmtOffset_sec, currentConfig.daylightOffset_sec, currentConfig.ntpServer.c_str());
+		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
 		Logger.println("Time set via NTP");
 	}
 	return true;
@@ -100,7 +103,9 @@ String Configuration::configToJSON() {
 	doc["webUsername"] = currentConfig.webUsername;
 	doc["webPassword"] = currentConfig.webPassword;
 	doc["useNTP"] = currentConfig.useNTP;
-	doc["ntpServer"] = currentConfig.ntpServer;
+	doc["ntpServer1"] = currentConfig.ntpServer1;
+	doc["ntpServer2"] = currentConfig.ntpServer2;
+	doc["ntpServer3"] = currentConfig.ntpServer3;
 	doc["gmtOffset"] = currentConfig.gmtOffset_sec;
 	doc["daylightOffset"] = currentConfig.daylightOffset_sec;
 	doc["WiFiClient"] = currentConfig.WiFiClient;

@@ -35,8 +35,14 @@ class Configuration {
 			/// @brief Whether to use NTP for time data
 			bool useNTP = true;
 
-			/// @brief NTP server
-			String ntpServer = "pool.ntp.org";
+			/// @brief NTP server 1
+			String ntpServer1 = "pool.ntp.org";
+
+			/// @brief NTP server 2
+			String ntpServer2 = "time.google.com";
+
+			/// @brief NTP server 3
+			String ntpServer3 = "time.windows.com";
 
 			/// @brief Daylight savings time offset in seconds
 			int daylightOffset_sec = 3600;
@@ -48,10 +54,10 @@ class Configuration {
 			bool WiFiClient = true;
 
 			/// @brief SSID for configuration interface
-			String configSSID = "SensorHub_Config";
+			String configSSID = "ESP32Hub_Config";
 
 			/// @brief Password for configuration interface
-			String configPW = "ESP32Sensor";
+			String configPW = "ESP32Hub";
 
 			/// @brief Hostname used by device
 			String hostname = "FabricaIO-ESP32Hub";
