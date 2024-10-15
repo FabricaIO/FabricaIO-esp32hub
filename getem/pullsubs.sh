@@ -37,7 +37,8 @@ do
     repo="git@github.com:FabricaIO/$i.git"
     if [ -d "${i}" ]; then
         echo "${i} exists!  Updating"
-        cd ${i} && git pull && cd ..
+        cd ${i} && git pull
+        cd ${SCRIPT_DIR}/../lib
     else
         echo "${i} does not exist yet - cloning ${repo} now!"
         git clone ${repo}
