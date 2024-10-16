@@ -14,18 +14,18 @@ bool Storage::begin() {
 }
 
 /// @brief Mount and initiate the storage for an SD card using SPI. Must be formatted as FAT32
-/// @param mi The microcontroller in pin
-/// @param mo The microcontroller out pin
+/// @param cipo The microcontroller in pin
+/// @param copi The microcontroller out pin
 /// @param sck The serial clock pin
 /// @param cs The chip-select pin
 /// @param frequency The bus frequency
 /// @param spi The SPI bus to use
 /// @return True on success
-bool Storage::begin(int mi, int mo, int sck, int cs, uint32_t frequency, SPIClass &spi) {
+bool Storage::begin(int cipo, int copi, int sck, int cs, uint32_t frequency, SPIClass &spi) {
 	storageSystem = &SD;
 	storageMedia = Storage::Media::SD_SPI;
 	// Start SPI bus
-	SPI.begin(sck, mi, mo);
+	SPI.begin(sck, cipo, copi);
 	bool success = true;
 	Logger.println("Mounting storage...");
 	if (!SD.begin(cs, spi, frequency)) {
