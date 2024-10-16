@@ -18,15 +18,17 @@ bool Storage::begin() {
 /// @param mo The microcontroller out pin
 /// @param sck The serial clock pin
 /// @param cs The chip-select pin
+/// @param frequency The bus frequency
+/// @param spi The SPI bus to use
 /// @return True on success
-bool Storage::begin(int mi, int mo, int sck, int cs) {
+bool Storage::begin(int mi, int mo, int sck, int cs, uint32_t frequency, SPIClass &spi) {
 	storageSystem = &SD;
 	storageMedia = Storage::Media::SD_SPI;
 	// Start SPI bus
 	SPI.begin(sck, mi, mo);
 	bool success = true;
 	Logger.println("Mounting storage...");
-	if (!SD.begin(cs)) {
+	if (!SD.begin(cs, spi, frequency)) {
 		Logger.println("Card mount failed, might need to format card as FAT32 or reduce clock frequency");
 		success = false;
 	} else {
@@ -59,14 +61,15 @@ bool Storage::begin(int mi, int mo, int sck, int cs) {
 /// @param d1 D1 pin number
 /// @param d2 D2 pin number
 /// @param d3 D3 pin number
+/// @param frequency The bus frequency
 /// @return True on success
-bool Storage::begin(int clk, int cmd, int d0, int d1, int d2, int d3) {
+bool Storage::begin(int clk, int cmd, int d0, int d1, int d2, int d3, uint32_t frequency) {
 	storageSystem = &SD_MMC;
 	storageMedia = Storage::Media::SD_MMC;
 	bool success = SD_MMC.setPins(clk, cmd, d0, d1, d2, d3);
 	if (success) {
 		Logger.println("Mounting storage...");
-		if (!SD_MMC.begin("/sd", false, true, 40000)) {
+		if (!SD_MMC.begin("/sd", false, true, frequency)) {
 			Logger.println("Card mount failed, might need to reduce sd_mmc frequency to 10000");
 			success = false;
 		} else {

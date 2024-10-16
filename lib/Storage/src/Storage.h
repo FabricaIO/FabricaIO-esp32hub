@@ -27,8 +27,8 @@ class Storage {
 		};
 		
 		static bool begin();
-		static bool begin(int mi, int mo, int sck, int cs);
-		static bool begin(int clk, int cmd, int d0, int d1, int d2, int d3);
+		static bool begin(int mi, int mo, int sck, int cs, uint32_t frequency = 4000000, SPIClass &spi = SPI);
+		static bool begin(int clk, int cmd, int d0, int d1, int d2, int d3, uint32_t frequency = 40000);
 		static FS* getFileSystem();
 		static Storage::Media getMediaType();
 		static std::vector<String> listFiles(String dirname, uint8_t levels);
