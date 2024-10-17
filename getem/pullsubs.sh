@@ -16,6 +16,7 @@ declare -a subs=(
     "actor-TimerSwitch"
     "eventreceiver-LEDIndicator"
     "logreceiver-SerialLogger"
+    "sensor-BoschBME280"
     "sensor-DFAirquality"
     "sensor-DFCO2Sensor"
     "sensor-DFGasSensor" 
@@ -24,6 +25,7 @@ declare -a subs=(
     "sensor-DummySensor"
     "sensor-GenericAnalogInput"
     "util-ParameterTrigger"
+    "sensor-PlantowerPMSx003"
     "util-Webhook"
     )
 
