@@ -88,7 +88,7 @@
 			"execute_action": {
 				"description": "Response from action",
 				"content": {
-					"text/json": {
+					"application/json": {
 						"schema": {
 							"type": "object",
 							"description": "Arbitrary JSON formatted response",
@@ -149,7 +149,7 @@
 					"200":{
 						"description": "File deleted",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"type": "object",
 									"properties": {
@@ -173,7 +173,7 @@
 					"200": {
 						"description": "JSON object of all sensors",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"type": "object",
 									"properties": {
@@ -251,7 +251,7 @@
 					"200":{
 						"description": "JSON object of sensor configuration",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema":{
 									"example": "{\"Pin\":36,\"ADC_Voltage_mv\":3300,\"ADC_Resolution\":4096,\"RollingAverage\":false,\"AverageSize\":5,\"AirValue\":0,\"WaterValue\":4095}",
 									"type": "object",
@@ -293,14 +293,17 @@
 					{
 						"name": "update",
 						"in": "query",
-						"description": "Used to indicate the measurements should be updated before retrieval, value is ignored"
+						"description": "Used to indicate the measurements should be updated before retrieval, value is ignored",
+						"schema": {
+							"type": "integer"
+						}
 					}
 				],
 				"responses": {
 					"200": {
 						"description": "JSON object of all measurements",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"type": "object",
 									"properties": {
@@ -358,7 +361,7 @@
 					"200": {
 						"description": "JSON object containing calibration response",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"type": "object",
 									"description": "Calibration response step",
@@ -388,7 +391,7 @@
 					"200": {
 						"description": "JSON object collection of all sensors",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"type": "object",									
 									"properties": {
@@ -456,7 +459,7 @@
 					"200":{
 						"description": "JSON object of device configuration",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema":{
 									"example": "{\"Pin\":9,\"name\":\"Timer Switch\",\"onTime\":\"9:30\",\"offTime\":\"22:15\",\"enabled\":false,\"active\":{\"current\":\"Active low\",\"options\":[\"Active low\",\"Active high\"]}}",
 									"type": "object",
@@ -561,7 +564,7 @@
 					"200": {
 						"description": "JSON object of current configuration",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"example":"{\"tasksEnabled\":false,\"period\":5000,\"webUsername\":\"Sam\",\"webPassword\":\"Td009326024\",\"useNTP\":true,\"ntpServer1\":\"pool.ntp.org\",\"ntpServer2\":\"time.google.com\",\"ntpServer3\":\"time.windows.com\",\"gmtOffset\":3600,\"daylightOffset\":-18000,\"WiFiClient\":true,\"configSSID\":\"ESP32Hub_Config\",\"configPW\":\"ESP32Hub\",\"hostname\":\"Fabrica-IO\"}",
 									"type": "object",
@@ -649,7 +652,7 @@
 					"200": {
 						"description": "The current free space in bytes",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"type":"object",
 									"properties": {
@@ -713,7 +716,7 @@
 					"200": {
 						"description": "OK",
 						"content": {
-							"text/json": {
+							"application/json": {
 								"schema": {
 									"example": "{\"files\":[\"/www/ajax-script.js\",\"/www/calibrate-script.js\",\"/www/calibrate.html\",\"/www/config-script.js\",\"/www/config.html\",\"/www/devices-script.js\",\"/www/devices.html\",\"/www/index-script.js\",\"/www/index.html\",\"/www/main.css\",\"/www/storage-script.js\",\"/www/storage.html\"]}",
 									"type": "object",
