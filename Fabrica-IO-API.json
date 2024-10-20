@@ -293,10 +293,7 @@
 					{
 						"name": "update",
 						"in": "query",
-						"description": "Used to indicate the measurements should be updated before retrieval",
-						"schema": {
-
-						}
+						"description": "Used to indicate the measurements should be updated before retrieval, value is ignored"
 					}
 				],
 				"responses": {
@@ -601,7 +598,7 @@
 				],
 				"responses": {
 					"200": {
-						"description": "OK"
+						"description": "Configuration updated"
 					}
 				}
 			}			
@@ -640,7 +637,7 @@
 				],
 				"responses": {
 					"200": {
-						"description": "OK"
+						"description": "Time set"
 					}
 				}
 			}
