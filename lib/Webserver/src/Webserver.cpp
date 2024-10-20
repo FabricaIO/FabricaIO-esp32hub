@@ -197,37 +197,6 @@ bool Webserver::ServerStart() {
 		}
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
-	// Sends an action to a actor immediately using the action'a name or ID, and returns any response
-	server->on("/actors/execute", HTTP_POST, [this](AsyncWebServerRequest *request) {
-		if (POSTSuccess) {	
-			if (request->hasParam("actor", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
-				// Parse data payload
-				bool id = true;
-				int actorPosID = request->getParam("actor", true)->value().toInt();
-				String payload = "";
-				if (request->hasParam("payload", true)) {
-					payload = request->getParam("payload", true)->value();
-				}
-				std::tuple<bool, String> result;
-				if (request->hasParam("id", true)) {
-					result = ActorManager::processActionImmediately(actorPosID, request->getParam("id", true)->value().toInt(), payload);
-				} else {
-					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name", true)->value(), payload);
-				}
-				String mime = "text/json";
-				if (!std::get<0>(result)) {
-					mime = "text/plain";
-				}
-				// Execute signal and return response
-				request->send(HTTP_CODE_OK, mime, std::get<1>(result));
-			} else {
-				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
-			}
-		} else {
-			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
-		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
-
 	// Sends a action to an actor immediately using the action's name or ID, and returns any response
 	server->on("/actors/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
@@ -244,6 +213,37 @@ bool Webserver::ServerStart() {
 					result = ActorManager::processActionImmediately(actorPosID, request->getParam("id")->value().toInt(), payload);
 				} else {
 					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name")->value(), payload);
+				}
+				String mime = "text/json";
+				if (!std::get<0>(result)) {
+					mime = "text/plain";
+				}
+				// Execute signal and return response
+				request->send(HTTP_CODE_OK, mime, std::get<1>(result));
+			} else {
+				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
+			}
+		} else {
+			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
+		}
+	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+
+	// Sends an action to a actor immediately using the action'a name or ID, and returns any response
+	server->on("/actors/execute", HTTP_POST, [this](AsyncWebServerRequest *request) {
+		if (POSTSuccess) {	
+			if (request->hasParam("actor", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
+				// Parse data payload
+				bool id = true;
+				int actorPosID = request->getParam("actor", true)->value().toInt();
+				String payload = "";
+				if (request->hasParam("payload", true)) {
+					payload = request->getParam("payload", true)->value();
+				}
+				std::tuple<bool, String> result;
+				if (request->hasParam("id", true)) {
+					result = ActorManager::processActionImmediately(actorPosID, request->getParam("id", true)->value().toInt(), payload);
+				} else {
+					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name", true)->value(), payload);
 				}
 				String mime = "text/json";
 				if (!std::get<0>(result)) {

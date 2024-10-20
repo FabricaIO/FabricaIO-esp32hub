@@ -1,0 +1,840 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title":"Fabrica-IO Device Hub",
+		"version":"1.0"
+	},
+	"servers": [
+		{
+			"url":"http://{device_hub_ip}",
+			"description": "Device hub",
+			"variables": {
+			"device_hub_ip":{
+				"default": "192.168.1.213",
+				"description": "The device hub IP address."
+				}
+			}
+		}
+	],
+	"components": {
+		"parameters": {
+			"sensor": {
+				"name": "sensor",
+				"in": "query",
+				"description": "The positionID of the sensor",
+				"schema": {
+					"type": "integer"
+				},
+				"required": true,
+				"example": 1
+			},
+			"actor": {
+				"name": "actor",
+				"in": "query",
+				"description": "The positionID of the actor",
+				"schema": {
+					"type": "integer"
+				},
+				"required": true,
+				"example": 1
+			},
+			"action_id": {
+				"name": "id",
+				"in": "query",
+				"description": "The ID of the action to perform. Either this or \"name\" is required",
+				"schema": {
+					"type": "integer"
+				},
+				"example": 1
+			},
+			"action_name": {
+				"name": "name",
+				"in": "query",
+				"description": "The name of the action to perform. Either this or \"id\" is required",
+				"schema": {
+					"type": "string"
+				},
+				"example": "Dose"
+			},
+			"file_path": {
+				"name": "path",
+				"in": "query",
+				"description": "The full path to the file to download",
+				"schema": {
+					"type": "string"
+				},
+				"required": true,
+				"example": "/www/index.html"				
+			}
+		},
+		"requestBodies": {
+			"upload_file": {
+				"content": {
+					"multipart/form-data": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"upfile": {
+									"type": "string",
+									"format": "binary"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"responses": {
+			"execute_action": {
+				"description": "Response from action",
+				"content": {
+					"text/json": {
+						"schema": {
+							"type": "object",
+							"description": "Arbitrary JSON formatted response",
+							"example":"{\"Response\": \"OK\"}"
+						}
+					},
+					"text/plain": {
+						"schema": {
+							"type": "string",
+							"description": "Arbitrary plain text response",
+							"example": "Done"
+						}
+					}
+				}				
+			}
+		}
+	},
+	"paths": {
+		"/upload-file": {
+			"post": {
+				"description": "Uploads a file to the device",
+				"requestBody": {
+					"$ref": "#/components/requestBodies/upload_file"
+				},
+				"parameters": [
+					{
+						"name": "FILE_UPLOAD_PATH",
+						"in": "header",
+						"description": "The full path on the device hub to write the file to",
+						"schema":{
+							"type": "string"
+						},
+						"required": true
+					}
+				],
+				"responses": {
+					"201": {
+						"description": "File uploaded"
+					}
+				}
+			}
+		},
+		"/delete": {
+			"post":{
+				"description": "Deletes a file from the device",
+				"parameters": [
+					{
+						"name": "path",
+						"in": "query",
+						"description": "Full path on device of file to delete",
+						"schema": {
+							"type": "string"
+						},
+						"required": true
+					}
+				],
+				"responses": {
+					"200":{
+						"description": "File deleted",
+						"content": {
+							"text/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"file": {
+											"type": "string",
+											"description": "The full path of the file that was deleted",
+											"example": "/settings/config.json"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/sensors/": {
+			"get":{
+				"description": "Gets a description of all currently connected sensors",
+				"responses": {
+					"200": {
+						"description": "JSON object of all sensors",
+						"content": {
+							"text/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"sensors": {
+											"type": "array",
+											"description": "Array of all sensor descriptions",
+											"items":{
+												"type": "object",
+												"properties": {
+													"positionID": {
+														"type": "integer",
+														"description": "The ID of the sensor on the device hub",
+														"example": 0
+													},
+													"description": {
+														"type": "object",
+														"description": "Description of the sensor",
+														"properties": {
+															"name": {
+																"type": "string",
+																"description": "Name of the sensor"
+															},
+															"parameterQuantity": {
+																"type": "integer",
+																"description": "The number of parameters the sensor measure"
+															},
+															"type": {
+																"type": "string",
+																"description": "The type of senor it is"
+															},
+															"version": {
+																"type": "string",
+																"description": "Version string for sensor library"
+															}
+														}												
+													},
+													"parameters": {
+														"type": "array",
+														"description": "Array describing the senors measured parameters",
+														"items":{
+															"type": "object",
+															"description": "Description of sensor parameters",
+															"properties": {
+																"name": {
+																	"type": "string",
+																	"description": "The name of the measured parameter"
+																},
+																"unit": {
+																	"type": "string",
+																	"description": "The unit used for the measured parameter"
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}	
+			}
+		},
+		"/sensors/config": {
+			"get": {
+				"description": "Retrieves the current configuration for a given senor",
+				"parameters": [ 
+					{
+						"$ref": "#/components/parameters/sensor"
+					}
+				],
+				"responses": {
+					"200":{
+						"description": "JSON object of sensor configuration",
+						"content": {
+							"text/json": {
+								"schema":{
+									"example": "{\"Pin\":36,\"ADC_Voltage_mv\":3300,\"ADC_Resolution\":4096,\"RollingAverage\":false,\"AverageSize\":5,\"AirValue\":0,\"WaterValue\":4095}",
+									"type": "object",
+									"description": "Collection of all configurable parameters for a sensor and their current values"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"description": "Updates the configuration for a sensor",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/sensor"
+					},
+					{
+						"name": "config",
+						"in": "query",
+						"description": "The complete JSON string of sensor's configurable parameters",
+						"schema": {
+							"type": "string"
+						},
+						"required": true,
+						"example": "{\"Pin\":36,\"ADC_Voltage_mv\":3300,\"ADC_Resolution\":4096,\"RollingAverage\":false,\"AverageSize\":5,\"AirValue\":0,\"WaterValue\":4095}"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Configuration updated"
+					}
+				}
+			}
+		},
+		"/sensors/measurement": {
+			"get": {
+				"description": "Retrieves the most recent sensor measurements from all sensors",
+				"parameters": [
+					{
+						"name": "update",
+						"in": "query",
+						"description": "Used to indicate the measurements should be updated before retrieval",
+						"schema": {
+
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "JSON object of all measurements",
+						"content": {
+							"text/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"measurements": {
+											"description": "Collection of all measurements",
+											"type": "array",
+											"items":{
+												"type": "object",
+												
+												"properties": {
+													"parameter": {
+														"type": "string",
+														"description": "The name of the measured parameter",
+														"example": "Temperature"
+													},
+													"value": {
+														"type": "number",
+														"description": "The measured value",
+														"example": 77.6
+													},
+													"unit": {
+														"type": "string",
+														"description": "The unit for the measured parameter",
+														"example": "C"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/sensors/calibrate": {
+			"post": {
+				"description": "Runs a calibration routine on a sensor",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/sensor"
+					},
+					{
+						"name": "step",
+						"in": "query",
+						"description": "The calibration step to execute",
+						"schema": {
+							"type": "integer"
+						},
+						"required": true
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "JSON object containing calibration response",
+						"content": {
+							"text/json": {
+								"schema": {
+									"type": "object",
+									"description": "Calibration response step",
+									"properties": {
+										"response": {
+											"type": "integer",
+											"description": "0: error, 1: done, 2: next",
+											"example": 2
+										},
+										"message": {
+											"type": "string",
+											"description": "Any message for the user that accompanies the calibration step",
+											"example": "Submerge sensor in water to indicated max line, then click next."
+										}
+									}
+								}
+							}
+						}
+					}
+				}			
+			}
+		},
+		"/actors/": {
+			"get": {
+				"description": "Gets a description of all currently connected actors",
+				"responses": {
+					"200": {
+						"description": "JSON object collection of all sensors",
+						"content": {
+							"text/json": {
+								"schema": {
+									"type": "object",									
+									"properties": {
+										"actors": {
+											"type": "array",
+											"description": "Array of all actor descriptions",
+											"items": {
+												"type": "object",
+												"properties": {
+													"positionID": {
+														"type": "integer",
+														"description": "The ID of the actor on the device hub",
+														"example": 0
+													},
+													"description": {
+														"type": "object",
+														"description": "Description of the actor",
+														"properties": {
+															"name": {
+																"type": "string",
+																"description": "Name of the actor"
+															},
+															"actionQuantity": {
+																"type": "integer",
+																"description": "The number of actions the actor can perform"
+															},
+															"type": {
+																"type": "string",
+																"description": "The type of actor it is"
+															},
+															"version": {
+																"type": "string",
+																"description": "Version string for actor library"
+															}
+														}										
+													},
+													"actions": {
+														"type": "array",
+														"description": "Array describing the actions available for this actor",
+														"items": {
+															"type": "string",
+															"description": "Name of action"
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/actors/config": {
+			"get": {				
+				"description": "Retrieves the current configuration for a given senor",
+				"parameters": [ 
+					{
+						"$ref": "#/components/parameters/actor"
+					}
+				],
+				"responses": {
+					"200":{
+						"description": "JSON object of device configuration",
+						"content": {
+							"text/json": {
+								"schema":{
+									"example": "{\"Pin\":9,\"name\":\"Timer Switch\",\"onTime\":\"9:30\",\"offTime\":\"22:15\",\"enabled\":false,\"active\":{\"current\":\"Active low\",\"options\":[\"Active low\",\"Active high\"]}}",
+									"type": "object",
+									"description": "Collection of all configurable parameters for an actor and their current values"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"description": "Updates the configuration for an actor",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/actor"
+					},
+					{
+						"name": "config",
+						"in": "query",
+						"description": "The complete JSON string of actor's configurable parameters",
+						"schema": {
+							"type": "string"
+						},
+						"required": true,
+						"example": "{\"Pin\":9,\"name\":\"Timer Switch\",\"onTime\":\"9:30\",\"offTime\":\"22:15\",\"enabled\":false,\"active\":{\"current\":\"Active high\"}}"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/actors/add": {
+			"post": {
+				"description": "Adds an action to the queue to be executed in order",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/actor"
+					},
+					{
+						"$ref": "#/components/parameters/action_id"
+					},
+					{
+						"$ref": "#/components/parameters/action_name"
+					
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/actors/execute": {
+			"get": {
+				"description": "Executes an action immediately and returns any result",
+				"parameters": [					{
+						"$ref": "#/components/parameters/actor"
+					},
+					{
+						"$ref": "#/components/parameters/action_id"
+					},
+					{
+						"$ref": "#/components/parameters/action_name"
+					
+					}
+				],
+				"responses": {
+					"200": {
+						"$ref": "#/components/responses/execute_action"
+					}
+				}
+			},
+			"post": {
+				"description": "Executes an action immediately and returns any result",
+				"parameters": [					
+					{
+						"$ref": "#/components/parameters/actor"
+					},
+					{
+						"$ref": "#/components/parameters/action_id"
+					},
+					{
+						"$ref": "#/components/parameters/action_name"
+					
+					}
+				],
+				"responses": {
+					"200": {
+						"$ref": "#/components/responses/execute_action"
+					}
+				}
+			}
+		},
+		"/config": {
+			"get": {
+				"description": "Retrieves the current device hub configuration",
+				"responses": {
+					"200": {
+						"description": "JSON object of current configuration",
+						"content": {
+							"text/json": {
+								"schema": {
+									"example":"{\"tasksEnabled\":false,\"period\":5000,\"webUsername\":\"Sam\",\"webPassword\":\"Td009326024\",\"useNTP\":true,\"ntpServer1\":\"pool.ntp.org\",\"ntpServer2\":\"time.google.com\",\"ntpServer3\":\"time.windows.com\",\"gmtOffset\":3600,\"daylightOffset\":-18000,\"WiFiClient\":true,\"configSSID\":\"ESP32Hub_Config\",\"configPW\":\"ESP32Hub\",\"hostname\":\"Fabrica-IO\"}",
+									"type": "object",
+									"description": "Collection of all configurable device hub parameters"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"description": "Updates the device hub configuration",
+				"parameters": [
+					{
+						"name": "config",
+						"in": "query",
+						"description": "The JSON formatted configuration",
+						"schema": {
+							"type": "string"
+						},
+						"example": "{\"tasksEnabled\":false,\"period\":5000,\"webUsername\":\"Sam\",\"webPassword\":\"Td009326024\",\"useNTP\":true,\"ntpServer1\":\"pool.ntp.org\",\"ntpServer2\":\"time.google.com\",\"ntpServer3\":\"time.windows.com\",\"gmtOffset\":3600,\"daylightOffset\":-18000,\"WiFiClient\":true,\"configSSID\":\"ESP32Hub_Config\",\"configPW\":\"ESP32Hub\",\"hostname\":\"Fabrica-IO\"}",
+						"required": true
+					},
+					{
+						"name": "save",
+						"in": "query",
+						"description": "\"true\" to save the new configuration to storage",
+						"schema": {
+							"type": "string"
+						},
+						"example": "true",
+						"required": true
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
+			}			
+		},
+		"/time": {
+			"get": {
+				"description": "Retrieves the current time on the device",
+				"responses": {
+					"200": {
+						"description": "The current time",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"description": "The current time as seconds since Unix epoch",
+									"example": 1729407956,
+									"type": "integer"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"description": "Sets the time on the device",
+				"parameters": [
+					{
+						"name": "time",
+						"in": "query",
+						"description": "The current time as seconds since Unix epoch",
+						"schema": {
+							"type": "integer"
+						},
+						"required": true,
+						"example": 1729407956
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/freeSpace": {
+			"get": {
+				"description": "Retrieves the amount of free space on the device storage",
+				"responses": {
+					"200": {
+						"description": "The current free space in bytes",
+						"content": {
+							"text/json": {
+								"schema": {
+									"type":"object",
+									"properties": {
+										"space": {
+											"type": "integer",
+											"example": "24576"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/reset": {
+			"put": {
+				"description": "Resets the WiFi configuration on the device",
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/reboot": {
+			"put": {
+				"description": "Reboots the device hub",
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/list": {
+			"get": {
+				"description": "Retrieves the complete file list of a directory",
+				"parameters": [
+					{
+						"name": "path",
+						"in": "query",
+						"description": "The path to the directory to list",
+						"schema": {
+							"type": "string"
+						},
+						"required": true,
+						"example": "/www"
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"description": "The depth of subdirectories to recurse into to list",
+						"schema": {
+							"type": "integer"
+						},
+						"example": 3
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"text/json": {
+								"schema": {
+									"example": "{\"files\":[\"/www/ajax-script.js\",\"/www/calibrate-script.js\",\"/www/calibrate.html\",\"/www/config-script.js\",\"/www/config.html\",\"/www/devices-script.js\",\"/www/devices.html\",\"/www/index-script.js\",\"/www/index.html\",\"/www/main.css\",\"/www/storage-script.js\",\"/www/storage.html\"]}",
+									"type": "object",
+									"properties": {
+										"files": {
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/download": {
+			"get": {
+				"description": "Downloads a file from the device storage",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/file_path"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "File octet stream",
+						"content": {
+							"application/octet-stream": {
+								"schema": {
+									"type": "string",
+									"format": "binary"
+								}
+							}
+						}
+
+					}
+				}
+			}
+		},
+		"/restorefile": {
+			"post": {
+				"description": "Restores a file on the device storage from a string",
+				"parameters": [
+					{
+						"$ref": "#/components/parameters/file_path"
+					},
+					{
+						"name": "contents",
+						"in": "query",
+						"description": "The complete contents of the file to restore",
+						"schema": {
+							"type": "string"
+						},
+						"required": true
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "File restored"
+					}
+				}
+			}
+		},
+		"/version": {
+			"get": {
+				"description": "Retrieves the versions of all connected devices",
+				"responses": {
+					"200": {
+						"description": "JSON object of all device software versions",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"example": "{\"hub\":\"1.5.0\",\"logreceivers\":{\"Serial Logger\":\"0.9.0\"},\"eventreceivers\":{\"LED Indicator\":\"0.8.6\"},\"sensors\":{\"Dummy Sensor\":\"0.6.0\",\"Soil Moisture Sensor\":\"0.5.1\"},\"actors\":{\"Timer Switch\":\"0.8.3\",\"Local Data Logger\":\"1.2.0\"}}",
+									"properties": {
+										"hub": {
+											"type": "string",
+											"description": "Device hub version"
+										},
+										"logreceivers": {
+											"type": "object",
+											"description": "Collection of log receiver versions"
+										},
+										"eventreceivers": {
+											"type": "object",
+											"description": "Collection of event receiver versions"
+										},
+										"senors": {
+											"type": "object",
+											"description": "Collection of sensor versions"
+										},
+										"actors": {
+											"type": "object",
+											"description": "Collection of actor versions"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/update": {
+			"post": {
+				"description": "Updates firmware on device hub",
+				"requestBody": {
+					"$ref": "#/components/requestBodies/upload_file"
+				},
+				"responses": {
+					"202": {
+						"description": "Update successful"
+					}
+				}
+			}
+		}
+	}
+}
