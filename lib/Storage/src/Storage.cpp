@@ -47,8 +47,8 @@ bool Storage::begin(int sdi, int sdo, int sck, int cs, uint32_t frequency, SPICl
 			} else {
 				Logger.println("UNKNOWN");
 			}
-			uint64_t cardSize = SD_MMC.cardSize() / 1048576; // 1024 * 1024
-			Logger.printf("SD_MMC card size: %lluMB\n", cardSize);
+			uint64_t cardSize = SD.cardSize() / 1048576; // 1024 * 1024
+			Logger.printf("SD card size: %lluMB\n", cardSize);
 		}
 	}
 	return success;
