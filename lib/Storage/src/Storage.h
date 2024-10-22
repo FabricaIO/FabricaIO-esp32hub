@@ -23,7 +23,8 @@ class Storage {
 		{
 			SD_SPI,
 			SD_MMC,
-			LittleFS
+			LittleFS,
+			Not_Ready
 		};
 		
 		static bool begin();
