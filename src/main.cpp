@@ -51,13 +51,13 @@ void setup() {
 	loader.LoadReceivers();
 
 	// Start loggers
-	if (!Logger.beginReceivers())	{
+	if (!Logger.beginReceivers()) {
 		Serial.println("Could not start all log receivers");
 		while(true);
 	}
 
 	// Start event receivers
-	if (!EventBroadcaster::beginReceivers())	{
+	if (!EventBroadcaster::beginReceivers()) {
 		Logger.println("Could not start all event receivers");
 		while(true);
 	}

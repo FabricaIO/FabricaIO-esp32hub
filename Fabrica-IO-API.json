@@ -735,6 +735,53 @@
 				}
 			}
 		},
+		"/listDirs": {
+			"get": {
+				"description": "Retrieves the complete folder list of a directory",
+				"parameters": [
+					{
+						"name": "path",
+						"in": "query",
+						"description": "The path to the directory to list",
+						"schema": {
+							"type": "string"
+						},
+						"required": true,
+						"example": "/www"
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"description": "The depth of subdirectories to recurse into to list",
+						"schema": {
+							"type": "integer"
+						},
+						"example": 3
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"example": "dirs\":[\"/data\",\"/settings\",\"/settings/act\",\"/settings/sen\",\"/www\"]}",
+									"type": "object",
+									"properties": {
+										"dirs": {
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/download": {
 			"get": {
 				"description": "Downloads a file from the device storage",

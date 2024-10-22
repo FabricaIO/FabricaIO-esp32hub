@@ -366,6 +366,31 @@ bool Webserver::ServerStart() {
 		}
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
+	// Handle listing directories
+	server->on("/listDirs", HTTP_GET, [this](AsyncWebServerRequest *request) {
+		if (request->hasParam("path")) {
+			String path = request->getParam("path")->value();
+			if (Storage::fileExists(path)) {
+				int depth = 0;
+				if (request->hasParam("depth")) {
+					depth = request->getParam("depth")->value().toInt();
+				}
+				std::vector<String> dir_list = Storage::listDirs(path, depth);
+				JsonDocument dirs;
+				for (int i = 0; i < dir_list.size(); i++) {
+					dirs["dirs"][i] = dir_list[i];
+				}
+				String dirs_string;
+				serializeJson(dirs, dirs_string);
+				request->send(HTTP_CODE_OK, "text/json", dirs_string);
+			} else {
+				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Folder doesn't exist");
+			}
+		} else {
+			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
+		}
+	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+
 	// Handle downloads
 	server->on("/download", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (request->hasParam("path")) {

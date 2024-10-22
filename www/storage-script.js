@@ -32,11 +32,28 @@ function updateFileList() {
 
 // Get list of files
 function getFileList(filePath, traverseDepth = 0) {
-	GETRequest("/list", addFileList, { path: filePath, depth: traverseDepth });
+	GETRequest("/list", addFileList, { path: filePath, depth: 0 });
+	GETRequest("/listDirs", addDirs, { path: filePath, depth: traverseDepth });
+}
+
+let filesLoaded = false;
+
+// Processes each directory one by one
+async function addDirs(response) {
+	if (response != null) {
+		for (let i = 0; i < response.dirs.length; i++)
+		{
+			while (!filesLoaded) {
+				await new Promise(r => setTimeout(r, 50));
+			}
+			filesLoaded = false;
+			GETRequest("/list", addFileList, { path: response.dirs[i], depth: 0 });
+		}
+	}
 }
 
 // Callback for receiving file list data
-function addFileList(response) {
+async function addFileList(response) {
 	if (response != null) {
 		let list = document.getElementById("file-list");
 		for (let i = 0; i < response.files.length; i++)
@@ -49,6 +66,8 @@ function addFileList(response) {
 			</tr>`;
 		}
 	}
+	await new Promise(r => setTimeout(r, 50));
+	filesLoaded = true;
 }
 
 // Delete file

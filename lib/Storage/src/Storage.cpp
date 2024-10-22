@@ -173,7 +173,7 @@ std::vector<String> Storage::listDirs(String dirname, uint8_t levels) {
 			folderContents.push_back(String(file.path()));
 			Logger.println(file.name());
 			if(levels) {
-				// Recurse and add subdir contents to file list
+				// Recurse and add subdir contents to directory list
 				for (const auto& d : listDirs(file.path(), levels - 1)) {
 					folderContents.push_back(d);
 				}
