@@ -15,6 +15,7 @@ declare -a subs=(
     "actor-ResetButton"
     "actor-TimerSwitch"
     "eventreceiver-LEDIndicator"
+    "logreceiver-LocalDebugLogger"
     "logreceiver-SerialLogger"
     "sensor-BoschBME280"
     "sensor-DFAirquality"
