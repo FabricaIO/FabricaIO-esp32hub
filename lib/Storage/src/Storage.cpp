@@ -7,10 +7,13 @@ FS* Storage::storageSystem = &LittleFS;
 /// @brief Mount LittleFS and format if necessary
 /// @return True on successful mount of LittleFS
 bool Storage::begin() {
-	storageSystem = &LittleFS;
-	storageMedia = Storage::Media::LittleFS;
 	Logger.println("Mounting  LittleFS, this could take a while, please wait...");
-	return LittleFS.begin(true, "/sd");
+	bool success = LittleFS.begin(true, "/sd");
+	if (success) {
+		storageSystem = &LittleFS;
+		storageMedia = Storage::Media::LittleFS;
+	}
+	return success;
 }
 
 /// @brief Mount and initiate the storage for an SD card using SPI. Must be formatted as FAT32
@@ -22,8 +25,6 @@ bool Storage::begin() {
 /// @param spi The SPI bus to use
 /// @return True on success
 bool Storage::begin(int sdi, int sdo, int sck, int cs, uint32_t frequency, SPIClass &spi) {
-	storageSystem = &SD;
-	storageMedia = Storage::Media::SD_SPI;
 	// Start SPI bus
 	SPI.begin(sck, sdi, sdo);
 	bool success = true;
@@ -51,6 +52,10 @@ bool Storage::begin(int sdi, int sdo, int sck, int cs, uint32_t frequency, SPICl
 			Logger.printf("SD card size: %lluMB\n", cardSize);
 		}
 	}
+	if (success) {
+		storageSystem = &SD;
+		storageMedia = Storage::Media::SD_SPI;
+	}
 	return success;
 }
 
@@ -64,8 +69,6 @@ bool Storage::begin(int sdi, int sdo, int sck, int cs, uint32_t frequency, SPICl
 /// @param frequency The bus frequency
 /// @return True on success
 bool Storage::begin(int clk, int cmd, int d0, int d1, int d2, int d3, uint32_t frequency) {
-	storageSystem = &SD_MMC;
-	storageMedia = Storage::Media::SD_MMC;
 	bool success = SD_MMC.setPins(clk, cmd, d0, d1, d2, d3);
 	if (success) {
 		Logger.println("Mounting storage...");
@@ -93,6 +96,10 @@ bool Storage::begin(int clk, int cmd, int d0, int d1, int d2, int d3, uint32_t f
 				Logger.printf("SD_MMC card size: %lluMB\n", cardSize);
 			}
 		}
+	}
+	if (success) {
+		storageSystem = &SD_MMC;
+		storageMedia = Storage::Media::SD_MMC;
 	}
 	return success;
 }
