@@ -765,7 +765,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"example": "\"dirs\":[\"/data\",\"/settings\",\"/settings/act\",\"/settings/sen\",\"/www\"]}",
+									"example": "{\"dirs\":[\"/data\",\"/settings\",\"/settings/act\",\"/settings/sen\",\"/www\"]}",
 									"type": "object",
 									"properties": {
 										"dirs": {
