@@ -7,7 +7,7 @@ FS* Storage::storageSystem = &LittleFS;
 /// @brief Mount LittleFS and format if necessary
 /// @return True on successful mount of LittleFS
 bool Storage::begin() {
-	Logger.println("Mounting  LittleFS, this could take a while, please wait...");
+	Logger.println("Mounting LittleFS, this could take a while, please wait...");
 	bool success = LittleFS.begin(true, "/sd");
 	if (success) {
 		storageSystem = &LittleFS;
