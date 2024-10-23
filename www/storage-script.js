@@ -33,7 +33,7 @@ function updateFileList() {
 // Get list of files
 function getFileList(filePath, traverseDepth = 0) {
 	GETRequest("/list", addFileList, { path: filePath, depth: 0 });
-	GETRequest("/listDirs", addDirs, { path: filePath, depth: traverseDepth });
+	GETRequest("/list", addDirs, { path: filePath, type: 1, depth: traverseDepth });
 }
 
 let filesLoaded = false;
@@ -41,13 +41,13 @@ let filesLoaded = false;
 // Processes each directory one by one
 async function addDirs(response) {
 	if (response != null) {
-		for (let i = 0; i < response.dirs.length; i++)
+		for (let i = 0; i < response.list.length; i++)
 		{
 			while (!filesLoaded) {
-				await new Promise(r => setTimeout(r, 50));
+				await new Promise(r => setTimeout(r, 10));
 			}
 			filesLoaded = false;
-			GETRequest("/list", addFileList, { path: response.dirs[i], depth: 0 });
+			GETRequest("/list", addFileList, { path: response.list[i], type: 0, depth: 0 });
 		}
 	}
 }
@@ -56,17 +56,17 @@ async function addDirs(response) {
 async function addFileList(response) {
 	if (response != null) {
 		let list = document.getElementById("file-list");
-		for (let i = 0; i < response.files.length; i++)
+		for (let i = 0; i < response.list.length; i++)
 		{
 			list.innerHTML += `
 			<tr class="file">
-				<td>` + response.files[i] + `</td>
-				<td class="download"><a href="/download?path=` + response.files[i] + `">Download</a>
-				<td class="delete" onclick="deleteFile(this)" data-name="` + response.files[i] + `">Delete</td>
+				<td>` + response.list[i] + `</td>
+				<td class="download"><a href="/download?path=` + response.list[i] + `">Download</a>
+				<td class="delete" onclick="deleteFile(this)" data-name="` + response.list[i] + `">Delete</td>
 			</tr>`;
 		}
 	}
-	await new Promise(r => setTimeout(r, 50));
+	await new Promise(r => setTimeout(r, 10));
 	filesLoaded = true;
 }
 

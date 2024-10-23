@@ -4,6 +4,7 @@
 */
 
 #include <Arduino.h>
+#include <esp_wifi.h>
 #include <Wire.h>
 #include <Webserver.h>
 #include <ESPAsyncWebServer.h>
@@ -37,6 +38,26 @@ Webserver webserver(&server);
 
 /// @brief Loads all actor, sensor, and event receiver devices
 DeviceLoader loader;
+
+/// @brief Handles disconnection from WiFi (adapted from https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/#11)
+/// @param event The event
+/// @param info The info associated with the event
+void WiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+	Logger.print("WiFi lost connection. Reason: ");
+	Logger.println(info.wifi_sta_disconnected.reason);
+	Logger.println("Trying to Reconnect");
+	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+	WiFi.disconnect();
+	if (WiFi.reconnect()) {
+		// Stop webserver
+		webserver.ServerStop();
+		// Start webserver
+		webserver.ServerStart();
+		Logger.println("WiFi reconnected");
+		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
+	}
+}
 
 void setup() {
 	// Start serial
@@ -81,6 +102,10 @@ void setup() {
 
 	// Set hostname
 	WiFi.setHostname(Configuration::currentConfig.hostname.c_str());
+
+	// Pre-configure WiFi
+	WiFi.mode(WIFI_STA);
+ 	esp_wifi_set_ps(WIFI_PS_NONE);
 	
 	if (Configuration::currentConfig.WiFiClient) {
 		// Configure WiFi client
@@ -91,6 +116,8 @@ void setup() {
 		WiFi.setAutoReconnect(true);
 		server.reset();
 		server.end();
+		// Attach handler for WiFi disconnected
+		WiFi.onEvent(WiFiDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 	} else {
 		// Start AP
 		WiFi.softAP(Configuration::currentConfig.configSSID, Configuration::currentConfig.configPW);
@@ -142,25 +169,10 @@ void setup() {
 // Used for tracking time intervals for timed events
 ulong current_mills = 0;
 ulong previous_mills_task = 0;
-ulong wifiCheck_millis = 0;
 ulong previous_millis_ntp = 0;
 
 void loop() {
 	current_mills = millis();
-	// Ensure WiFi is connected (should be unnecessary, used now for testing)
-	if(current_mills - wifiCheck_millis > 30000) {
-		wifiCheck_millis = current_mills;
-		if (WiFi.status() != WL_CONNECTED) {
-			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-			if (WiFi.reconnect()) {
-				// Stop webserver
-				webserver.ServerStop();
-				// Start webserver
-				webserver.ServerStart();
-				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
-			}
-		}
-	}
 	if(Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
 		// Synchronize the time every 6 hours
 		if (current_mills - previous_millis_ntp > 21600000) {

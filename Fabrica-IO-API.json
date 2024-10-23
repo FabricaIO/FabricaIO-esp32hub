@@ -710,53 +710,15 @@
 							"type": "integer"
 						},
 						"example": 3
-					}
-				],
-				"responses": {
-					"200": {
-						"description": "OK",
-						"content": {
-							"application/json": {
-								"schema": {
-									"example": "{\"files\":[\"/www/ajax-script.js\",\"/www/calibrate-script.js\",\"/www/calibrate.html\",\"/www/config-script.js\",\"/www/config.html\",\"/www/devices-script.js\",\"/www/devices.html\",\"/www/index-script.js\",\"/www/index.html\",\"/www/main.css\",\"/www/storage-script.js\",\"/www/storage.html\"]}",
-									"type": "object",
-									"properties": {
-										"files": {
-											"type": "array",
-											"items": {
-												"type": "string"
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/listDirs": {
-			"get": {
-				"description": "Retrieves the complete folder list of a directory",
-				"parameters": [
-					{
-						"name": "path",
-						"in": "query",
-						"description": "The path to the directory to list",
-						"schema": {
-							"type": "string"
-						},
-						"required": true,
-						"example": "/www"
 					},
 					{
-						"name": "depth",
+						"name": "type",
 						"in": "query",
-						"description": "The depth of subdirectories to recurse into to list",
+						"description": "The type of item to list. 0: files (default), 1: directories",
 						"schema": {
 							"type": "integer"
 						},
-						"example": 3
+						"example": 0
 					}
 				],
 				"responses": {
@@ -765,10 +727,10 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"example": "{\"dirs\":[\"/data\",\"/settings\",\"/settings/act\",\"/settings/sen\",\"/www\"]}",
+									"example": "{\"list\":[\"/www/ajax-script.js\",\"/www/calibrate-script.js\",\"/www/calibrate.html\",\"/www/config-script.js\",\"/www/config.html\",\"/www/devices-script.js\",\"/www/devices.html\",\"/www/index-script.js\",\"/www/index.html\",\"/www/main.css\",\"/www/storage-script.js\",\"/www/storage.html\"]}",
 									"type": "object",
 									"properties": {
-										"dirs": {
+										"list": {
 											"type": "array",
 											"items": {
 												"type": "string"

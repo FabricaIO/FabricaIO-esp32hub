@@ -341,7 +341,7 @@ bool Webserver::ServerStart() {
 		Webserver::shouldReboot = true;
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
-	// Handle listing files
+	// Handle listing files and directories
 	server->on("/list", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (request->hasParam("path")) {
 			String path = request->getParam("path")->value();
@@ -350,39 +350,23 @@ bool Webserver::ServerStart() {
 				if (request->hasParam("depth")) {
 					depth = request->getParam("depth")->value().toInt();
 				}
-				std::vector<String> file_list = Storage::listFiles(path, depth);
-				JsonDocument files;
-				for (int i = 0; i < file_list.size(); i++) {
-					files["files"][i] = file_list[i];
+				int type = 0;
+				if (request->hasParam("type")) {
+					type =  request->getParam("type")->value().toInt();
 				}
-				String files_string;
-				serializeJson(files, files_string);
-				request->send(HTTP_CODE_OK, "text/json", files_string);
-			} else {
-				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Folder doesn't exist");
-			}
-		} else {
-			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
-		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
-
-	// Handle listing directories
-	server->on("/listDirs", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		if (request->hasParam("path")) {
-			String path = request->getParam("path")->value();
-			if (Storage::fileExists(path)) {
-				int depth = 0;
-				if (request->hasParam("depth")) {
-					depth = request->getParam("depth")->value().toInt();
+				std::vector<String> list;
+				if (type == 0) {
+					list = Storage::listFiles(path, depth);
+				} else {
+					list = Storage::listDirs(path, depth);
 				}
-				std::vector<String> dir_list = Storage::listDirs(path, depth);
-				JsonDocument dirs;
-				for (int i = 0; i < dir_list.size(); i++) {
-					dirs["dirs"][i] = dir_list[i];
+				JsonDocument result;
+				for (int i = 0; i < list.size(); i++) {
+					result["list"][i] = list[i];
 				}
-				String dirs_string;
-				serializeJson(dirs, dirs_string);
-				request->send(HTTP_CODE_OK, "text/json", dirs_string);
+				String result_string;
+				serializeJson(result, result_string);
+				request->send(HTTP_CODE_OK, "text/json", result_string);
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Folder doesn't exist");
 			}
