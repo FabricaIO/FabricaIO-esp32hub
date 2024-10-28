@@ -6,12 +6,20 @@
 	},
 	"servers": [
 		{
-			"url":"http://{device_hub_ip}",
+			"url":"http://{username}:{password}@{device_hub_ip}",
 			"description": "Device hub",
 			"variables": {
-			"device_hub_ip":{
-				"default": "192.168.1.213",
-				"description": "The device hub IP address."
+				"device_hub_ip":{
+					"default": "192.168.1.213",
+					"description": "The device hub IP address."
+					},
+				"username":{
+					"default": "Fabrica",
+					"description": "The interface username."
+				},
+				"password":{
+					"default": "Fabrica",
+					"description": "The interface password."
 				}
 			}
 		}
@@ -59,7 +67,7 @@
 			"file_path": {
 				"name": "path",
 				"in": "query",
-				"description": "The full path to the file to download",
+				"description": "The full path to the file",
 				"schema": {
 					"type": "string"
 				},
@@ -104,6 +112,29 @@
 					}
 				}				
 			}
+		},
+		"schemas": {
+			"action":{
+				"type": "object",
+				"properties": {
+					"actor": {
+						"type": "integer",
+						"description": "The positionID of the actor",
+						"example": 1
+					},
+					"action_id":	{
+						"type": "integer",
+						"description": "The ID of the action to perform. Either this or \"name\" is required",
+						"example": 1
+					},
+					"action_name": {
+						"type": "string",
+						"description": "The name of the action to perform. Either this or \"id\" is required",
+						"example": "Dose"
+					}
+				},
+				"required": ["actor"]
+			}
 		}
 	},
 	"paths": {
@@ -134,17 +165,23 @@
 		"/delete": {
 			"post":{
 				"description": "Deletes a file from the device",
-				"parameters": [
-					{
-						"name": "path",
-						"in": "query",
-						"description": "Full path on device of file to delete",
-						"schema": {
-							"type": "string"
-						},
-						"required": true
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type":"object",
+								"properties": {
+									"path": {
+										"type": "string",
+										"example": "/data/LocalData.csv",
+										"description": "Full path on device of file"
+									}
+								},
+								"required": ["path"]
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200":{
 						"description": "File deleted",
@@ -264,21 +301,28 @@
 			},
 			"post": {
 				"description": "Updates the configuration for a sensor",
-				"parameters": [
-					{
-						"$ref": "#/components/parameters/sensor"
-					},
-					{
-						"name": "config",
-						"in": "query",
-						"description": "The complete JSON string of sensor's configurable parameters",
-						"schema": {
-							"type": "string"
-						},
-						"required": true,
-						"example": "{\"Pin\":36,\"ADC_Voltage_mv\":3300,\"ADC_Resolution\":4096,\"RollingAverage\":false,\"AverageSize\":5,\"AirValue\":0,\"WaterValue\":4095}"
+				"requestBody":{
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"sensor": {
+										"type": "integer",
+										"description": "The positionID of the sensor",
+										"example": 1
+									},
+									"config": {
+										"type": "string",
+										"description": "The complete JSON string of sensor's configurable parameters",
+										"example": "{\"Pin\":36,\"ADC_Voltage_mv\":3300,\"ADC_Resolution\":4096,\"RollingAverage\":false,\"AverageSize\":5,\"AirValue\":0,\"WaterValue\":4095}"
+									}
+								},
+								"required": ["sensor", "config"]							
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"description": "Configuration updated"
@@ -343,20 +387,28 @@
 		"/sensors/calibrate": {
 			"post": {
 				"description": "Runs a calibration routine on a sensor",
-				"parameters": [
-					{
-						"$ref": "#/components/parameters/sensor"
-					},
-					{
-						"name": "step",
-						"in": "query",
-						"description": "The calibration step to execute",
-						"schema": {
-							"type": "integer"
-						},
-						"required": true
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"sensor": {
+										"type": "integer",
+										"description": "The positionID of the sensor",
+										"example": 1
+									},
+									"step": {
+										"type": "integer",
+										"description": "The calibration step to execute",
+										"example": 1
+									}
+								},
+								"required": ["sensor", "step"]
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"description": "JSON object containing calibration response",
@@ -449,7 +501,7 @@
 		},
 		"/actors/config": {
 			"get": {				
-				"description": "Retrieves the current configuration for a given senor",
+				"description": "Retrieves the current configuration for a given actor",
 				"parameters": [ 
 					{
 						"$ref": "#/components/parameters/actor"
@@ -472,21 +524,28 @@
 			},
 			"post": {
 				"description": "Updates the configuration for an actor",
-				"parameters": [
-					{
-						"$ref": "#/components/parameters/actor"
-					},
-					{
-						"name": "config",
-						"in": "query",
-						"description": "The complete JSON string of actor's configurable parameters",
-						"schema": {
-							"type": "string"
-						},
-						"required": true,
-						"example": "{\"Pin\":9,\"name\":\"Timer Switch\",\"onTime\":\"9:30\",\"offTime\":\"22:15\",\"enabled\":false,\"active\":{\"current\":\"Active high\"}}"
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"actor": {
+										"type": "integer",
+										"description": "The positionID of the actor",
+										"example": 1
+									},
+									"config": {
+										"type": "string",
+										"description": "The complete JSON string of actor's configurable parameters",
+										"example": "{\"Pin\":9,\"name\":\"Timer Switch\",\"onTime\":\"9:30\",\"offTime\":\"22:15\",\"enabled\":false,\"active\":{\"current\":\"Active high\"}}"
+									}
+								},
+								"required": ["actor", "config"]
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"description": "OK"
@@ -497,18 +556,15 @@
 		"/actors/add": {
 			"post": {
 				"description": "Adds an action to the queue to be executed in order",
-				"parameters": [
-					{
-						"$ref": "#/components/parameters/actor"
-					},
-					{
-						"$ref": "#/components/parameters/action_id"
-					},
-					{
-						"$ref": "#/components/parameters/action_name"
-					
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"$ref": "#/components/schemas/action"
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"description": "OK"
@@ -538,18 +594,15 @@
 			},
 			"post": {
 				"description": "Executes an action immediately and returns any result",
-				"parameters": [					
-					{
-						"$ref": "#/components/parameters/actor"
-					},
-					{
-						"$ref": "#/components/parameters/action_id"
-					},
-					{
-						"$ref": "#/components/parameters/action_name"
-					
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"$ref": "#/components/schemas/action"
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"$ref": "#/components/responses/execute_action"
@@ -577,28 +630,28 @@
 			},
 			"post": {
 				"description": "Updates the device hub configuration",
-				"parameters": [
-					{
-						"name": "config",
-						"in": "query",
-						"description": "The JSON formatted configuration",
-						"schema": {
-							"type": "string"
-						},
-						"example": "{\"tasksEnabled\":false,\"period\":5000,\"webUsername\":\"Sam\",\"webPassword\":\"Td009326024\",\"useNTP\":true,\"ntpServer1\":\"pool.ntp.org\",\"ntpServer2\":\"time.google.com\",\"ntpServer3\":\"time.windows.com\",\"gmtOffset\":3600,\"daylightOffset\":-18000,\"WiFiClient\":true,\"configSSID\":\"ESP32Hub_Config\",\"configPW\":\"ESP32Hub\",\"hostname\":\"Fabrica-IO\"}",
-						"required": true
-					},
-					{
-						"name": "save",
-						"in": "query",
-						"description": "\"true\" to save the new configuration to storage",
-						"schema": {
-							"type": "string"
-						},
-						"example": "true",
-						"required": true
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema":{
+								"type": "object",
+								"properties": {
+									"config": {
+										"type": "string",
+										"description": "The JSON formatted configuration",
+										"example": "{\"tasksEnabled\":false,\"period\":5000,\"webUsername\":\"Sam\",\"webPassword\":\"Td009326024\",\"useNTP\":true,\"ntpServer1\":\"pool.ntp.org\",\"ntpServer2\":\"time.google.com\",\"ntpServer3\":\"time.windows.com\",\"gmtOffset\":3600,\"daylightOffset\":-18000,\"WiFiClient\":true,\"configSSID\":\"ESP32Hub_Config\",\"configPW\":\"ESP32Hub\",\"hostname\":\"Fabrica-IO\"}"
+									},
+									"save": {
+										"type": "string",
+										"description": "\"true\" to save the new configuration to storage",
+										"example": "true"
+									}
+								},
+								"required": ["config", "save"]
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"description": "Configuration updated"
@@ -626,18 +679,23 @@
 			},
 			"post": {
 				"description": "Sets the time on the device",
-				"parameters": [
-					{
-						"name": "time",
-						"in": "query",
-						"description": "The current time as seconds since Unix epoch",
-						"schema": {
-							"type": "integer"
-						},
-						"required": true,
-						"example": 1729407956
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"time": {
+										"type": "integer",
+										"description": "The current time as seconds since Unix epoch",
+										"example": 1729407956
+									}
+								},
+								"required": ["time"]
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"description": "Time set"
@@ -771,20 +829,27 @@
 		"/restorefile": {
 			"post": {
 				"description": "Restores a file on the device storage from a string",
-				"parameters": [
-					{
-						"$ref": "#/components/parameters/file_path"
-					},
-					{
-						"name": "contents",
-						"in": "query",
-						"description": "The complete contents of the file to restore",
-						"schema": {
-							"type": "string"
-						},
-						"required": true
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"path": {
+										"type": "string",
+										"description": "The full path of the file that was restored",
+										"example": "/settings/config.json"
+									},
+									"contents": {
+										"type": "string",
+										"description": "The complete contents of the file to restore"
+									}
+								},
+								"required": ["path", "contents"]
+							}
+						}
 					}
-				],
+				},
 				"responses": {
 					"200": {
 						"description": "File restored"
