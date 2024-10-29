@@ -56,7 +56,7 @@ bool Webserver::ServerStart() {
 				if (!Storage::deleteFile(path)) {
 					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not delete file");
 				} else {
-					request->send(HTTP_CODE_OK, "text/json", "{\"file\":\"" + path + "\"}");
+					request->send(HTTP_CODE_OK, "application/json", "{\"file\":\"" + path + "\"}");
 				}
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "File doesn't exist");
@@ -68,14 +68,14 @@ bool Webserver::ServerStart() {
 
 	// Get descriptions of available sensors
 	server->on("/sensors/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send(HTTP_CODE_OK, "text/json", SensorManager::getSensorInfo());
+		request->send(HTTP_CODE_OK, "application/json", SensorManager::getSensorInfo());
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
 	// Get curent configuration of a sensor
 	server->on("/sensors/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (request->hasParam("sensor")) {
 			int sensorPosID = request->getParam("sensor")->value().toInt();
-			request->send(HTTP_CODE_OK, "text/json", SensorManager::getSensorConfig(sensorPosID));
+			request->send(HTTP_CODE_OK, "application/json", SensorManager::getSensorConfig(sensorPosID));
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
@@ -107,7 +107,7 @@ bool Webserver::ServerStart() {
 					return;
 				}
 			}
-			request->send(HTTP_CODE_OK, "text/json", SensorManager::getLastMeasurement());
+			request->send(HTTP_CODE_OK, "application/json", SensorManager::getLastMeasurement());
 		} else {
 			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
 		}
@@ -125,7 +125,7 @@ bool Webserver::ServerStart() {
 				std::tuple<Sensor::calibration_response, String> response = SensorManager::calibrateSensor(sensorPosID, step);
 
 				// Create response
-				request->send(HTTP_CODE_OK, "text/json", "{\"response\":" + String(std::get<0>(response)) + ",\"message\":\"" + std::get<1>(response) + "\"}");
+				request->send(HTTP_CODE_OK, "application/json", "{\"response\":" + String(std::get<0>(response)) + ",\"message\":\"" + std::get<1>(response) + "\"}");
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 			}
@@ -136,14 +136,14 @@ bool Webserver::ServerStart() {
 
 	// Get descriptions of available actors
 	server->on("/actors/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send(HTTP_CODE_OK, "text/json", ActorManager::getActorInfo());
+		request->send(HTTP_CODE_OK, "application/json", ActorManager::getActorInfo());
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
 	// Get curent configuration of a receiver
 	server->on("/actors/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (request->hasParam("actor")) {
 			int actorPosID = request->getParam("actor")->value().toInt();
-			request->send(HTTP_CODE_OK, "text/json", ActorManager::getActorConfig(actorPosID));
+			request->send(HTTP_CODE_OK, "application/json", ActorManager::getActorConfig(actorPosID));
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
@@ -214,7 +214,7 @@ bool Webserver::ServerStart() {
 				} else {
 					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name")->value(), payload);
 				}
-				String mime = "text/json";
+				String mime = "application/json";
 				if (!std::get<0>(result)) {
 					mime = "text/plain";
 				}
@@ -245,7 +245,7 @@ bool Webserver::ServerStart() {
 				} else {
 					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name", true)->value(), payload);
 				}
-				String mime = "text/json";
+				String mime = "application/json";
 				if (!std::get<0>(result)) {
 					mime = "text/plain";
 				}
@@ -261,7 +261,7 @@ bool Webserver::ServerStart() {
 
 	// Get curent global configuration
 	server->on("/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send(HTTP_CODE_OK, "text/json", Configuration::getConfig());
+		request->send(HTTP_CODE_OK, "application/json", Configuration::getConfig());
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
 	// Update global configuration
@@ -313,7 +313,7 @@ bool Webserver::ServerStart() {
 	// Handle request for the amount of free space on the storage device (example of returning JSON data)
 	server->on("/freeSpace", HTTP_GET, [this](AsyncWebServerRequest *request) {	
 		String result = "{ \"space\": " + String(Storage::freeSpace()) + " }";
-		request->send(HTTP_CODE_OK, "text/json", result);
+		request->send(HTTP_CODE_OK, "application/json", result);
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
 	// Handle reset request
@@ -366,7 +366,7 @@ bool Webserver::ServerStart() {
 				}
 				String result_string;
 				serializeJson(result, result_string);
-				request->send(HTTP_CODE_OK, "text/json", result_string);
+				request->send(HTTP_CODE_OK, "application/json", result_string);
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Folder doesn't exist");
 			}
@@ -426,7 +426,7 @@ bool Webserver::ServerStart() {
 		versions += "\"sensors\":" + SensorManager::getSensorVersions() + ",";
 		versions += "\"actors\":" + ActorManager::getActorVersions();
 		versions += "}";
-		request->send(HTTP_CODE_OK, "text/json", versions);
+		request->send(HTTP_CODE_OK, "application/json", versions);
 	});
 
 	// Update page is special and hard-coded to always be available
