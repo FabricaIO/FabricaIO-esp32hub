@@ -122,12 +122,12 @@
 						"description": "The positionID of the actor",
 						"example": 1
 					},
-					"action_id":	{
+					"id":	{
 						"type": "integer",
 						"description": "The ID of the action to perform. Either this or \"name\" is required",
 						"example": 1
 					},
-					"action_name": {
+					"name": {
 						"type": "string",
 						"description": "The name of the action to perform. Either this or \"id\" is required",
 						"example": "Dose"
