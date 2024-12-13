@@ -55,8 +55,8 @@ bool Configuration::updateConfig(String config) {
 	currentConfig.ntpServer2 = doc["ntpServer2"].as<String>();
 	currentConfig.ntpServer3 = doc["ntpServer3"].as<String>();
 	currentConfig.hostname = doc["hostname"].as<String>();
-	currentConfig.daylightOffset_sec = doc["gmtOffset"].as<int>();
-	currentConfig.gmtOffset_sec = doc["daylightOffset"].as<long>();
+	currentConfig.daylightOffset_sec = doc["daylightOffset"].as<int>();
+	currentConfig.gmtOffset_sec = doc["gmtOffset"].as<long>();
 	currentConfig.WiFiClient = doc["WiFiClient"] | true;
 	currentConfig.configSSID = doc["configSSID"].as<String>();
 	currentConfig.configPW = doc["configPW"].as<String>();
