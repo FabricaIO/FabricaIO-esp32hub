@@ -5,7 +5,7 @@ ESP32Time TimeInterface::rtc;
 
 /// @brief Get the current formatted time
 /// @param format The CPP formatted time (https://cplusplus.com/reference/ctime/strftime/)
-/// @return The fomratted time as a string
+/// @return The formatted time as a string
 String TimeInterface::getFormattedTime(String format) {
 	return rtc.getTime(format);
 }
@@ -17,7 +17,7 @@ String TimeInterface::getDateTime(bool longDate) {
 	return rtc.getDateTime(longDate);
 }
 
-/// @brief Sets the time using the passed paramters
+/// @brief Sets the time using the passed parameters
 /// @param sc seconds (0-59)
 /// @param mn minute (0-29)
 /// @param hr hour of day (0-23)
@@ -30,7 +30,7 @@ void TimeInterface::setTime(int sc, int mn, int hr, int dy, int mt, int yr, int 
 }
 
 
-/// @brief Sets the time usinng time since Unix epoch
+/// @brief Sets the time using time since Unix epoch
 /// @param epoch Epoch time in seconds
 /// @param ms microseconds (optional)
 void TimeInterface::setTime(unsigned long epoch, int ms) {
