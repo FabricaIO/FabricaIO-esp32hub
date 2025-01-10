@@ -36,10 +36,7 @@ class Sensor : public DeviceConfig {
 
 			/// @brief The units associated with each measurement parameter
 			std::vector<String> units;
-
-			/// @brief The ID of this sensor
-			int id;
-
+			
 			/// @brief The version of the sensor code
 			String version = "0.0.1";
 		} Description;
