@@ -17,6 +17,7 @@
 #include <WiFiConfig.h>
 #include <SensorManager.h>
 #include <PeriodicTasks.h>
+#include <PeriodicTasks.h>
 #include <DeviceLoader.h>
 #include <TimeInterface.h>
 #include <LogBroadcaster.h>
