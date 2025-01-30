@@ -64,6 +64,15 @@
 				},
 				"example": "Dose"
 			},
+			"action_payload": {
+				"name": "payload",
+				"in": "query",
+				"description": "Optional payload of data to accompany action",
+				"schema": {
+					"type": "string"
+				},
+				"example": "15"
+			},
 			"file_path": {
 				"name": "path",
 				"in": "query",
@@ -131,6 +140,11 @@
 						"type": "string",
 						"description": "The name of the action to perform. Either this or \"id\" is required",
 						"example": "Dose"
+					},
+					"payload": {
+						"type": "string",
+						"description": "Optional payload of data to accompany action",
+						"example": "15"
 					}
 				},
 				"required": ["actor"]
@@ -584,6 +598,9 @@
 					{
 						"$ref": "#/components/parameters/action_name"
 					
+					},
+					{
+						"$ref": "#/components/parameters/action_payload"
 					}
 				],
 				"responses": {
