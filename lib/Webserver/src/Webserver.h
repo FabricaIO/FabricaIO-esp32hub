@@ -237,14 +237,12 @@ async function restoreBackup() {
 	document.getElementById('message').innerHTML = 'Beginning restore...';
 	reader.onload = async function(file) {
 		let files = JSON.parse(file.target.result);
-		let i = 0;
 		let restored = false;
 		for (let file in files) {
 			POSTRequest('/restorefile', 'File ' + file + ' restored', {"path": file, "contents": files[file]}, async function() {
 				await new Promise(r => setTimeout(r, 50))
 				restored = true;
 			});
-			// Wait for file to be restored before proceeding
 			while (!restored) {
 				await new Promise(r => setTimeout(r, 50));
 			}

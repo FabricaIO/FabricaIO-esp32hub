@@ -36,12 +36,11 @@ function addActors(actors) {
 	}
 }
 
-// Adds an actor to the page for configuring
+// Loads a device for configuration
 function loadDevice(isSensor, name, posID) {
 	const holder = document.getElementById("device");
 	holder.dataset.posid = posID;
 	holder.dataset.sensor = isSensor;
-	device.data
 	holder.innerHTML = '<h2>' + name + '</h2>';
 	let path = "/actors/config";
 	let dataName = "actor";
