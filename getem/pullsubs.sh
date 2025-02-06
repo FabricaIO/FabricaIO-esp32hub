@@ -11,6 +11,7 @@ declare -a subs=(
     "actor-DFAutoPeristalticPump" 
     "actor-DFPeristalticPump"
     "actor-GenericOutput"
+    "actor-LEDPWM"
     "actor-LocalDataLogger"
     "actor-ResetButton"
     "actor-TimerSwitch"
