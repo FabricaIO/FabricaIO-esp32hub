@@ -27,6 +27,7 @@ declare -a subs=(
     "sensor-GenericAnalogInput"
     "sensor-PlantowerPMSx003"
     "util-ParameterTrigger"
+    "util-SunsetSunrise"
     "util-Webhook"
     )
 
