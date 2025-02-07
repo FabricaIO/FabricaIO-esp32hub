@@ -60,7 +60,10 @@ class Configuration {
 			String configPW = "ESP32Hub";
 
 			/// @brief Hostname used by device
-			String hostname = "FabricaIO-ESP32Hub";
+			String hostname = "FabricaIO";
+			
+			/// @brief Enable MDNS using hostname
+			bool mdns = true;
 		} config;
 
 		static String configToJSON();

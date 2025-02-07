@@ -15,6 +15,7 @@
 #include <ActorManager.h>
 #include <WebServer.h>
 #include <WiFiConfig.h>
+#include <ESPmDNS.h>
 #include <SensorManager.h>
 #include <PeriodicTasks.h>
 #include <PeriodicTasks.h>
@@ -131,6 +132,15 @@ void setup() {
 	webserver.ServerStart();
 	xTaskCreate(Webserver::RebootCheckerTaskWrapper, "Reboot Checker Loop", 1024, &webserver, 1, NULL);
 
+	// Start MDNS service
+	if (Configuration::currentConfig.mdns) {
+		if(!MDNS.begin(Configuration::currentConfig.hostname)) {
+			Logger.println("Couldn not start MDNS service");
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			while(true);
+		}
+	}
+
 	// Load all devices
 	loader.LoadDevices();
 
@@ -157,6 +167,7 @@ void setup() {
 	if (Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
 		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
 	}
+	
 	// Give info to user
 	Logger.println("Time: " + TimeInterface::getDateTime());
 	Logger.print("IP Address: ");
