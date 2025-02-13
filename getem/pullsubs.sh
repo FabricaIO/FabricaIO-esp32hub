@@ -27,6 +27,7 @@ declare -a subs=(
     "sensor-DummySensor"
     "sensor-GenericAnalogInput"
     "sensor-PlantowerPMSx003"
+    "sensor-DFWaterConductivity"
     "util-ParameterTrigger"
     "util-SunsetSunrise"
     "util-Webhook"
