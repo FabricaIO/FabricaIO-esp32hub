@@ -23,6 +23,7 @@ declare -a subs=(
     "sensor-DFCO2Sensor"
     "sensor-DFGasSensor"
     "sensor-DFMultiEnvironmental"
+	"sensor-DFpHSensor"
     "sensor-DFSoilMoisture"
     "sensor-DummySensor"
     "sensor-GenericAnalogInput"
