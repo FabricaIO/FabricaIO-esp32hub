@@ -10,7 +10,6 @@
 #include <LogBroadcaster.h>
 #include <SensorManager.h>
 #include <ActorManager.h>
-
 /******** Put additional includes here ********/
 
 /******** End includes ********/
