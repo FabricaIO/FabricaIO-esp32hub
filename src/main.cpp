@@ -62,13 +62,6 @@ void WiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 }
 
 void setup() {
-	// Start serial
-	Serial.begin(115200);
-	Serial.print("Booting ESP32 sensor hub V");
-	Serial.println(FW_VERSION);
-	Serial.println();
-	Serial.println("Designed and created by Sam Groveman (C) 2024");
-	Serial.println();
 
 	// Load all event and log receivers
 	loader.LoadReceivers();
@@ -78,6 +71,13 @@ void setup() {
 		Serial.println("Could not start all log receivers");
 		while(true);
 	}
+	// Let any serial monitors connect
+	delay(500);
+	Logger.print("Booting ESP32 sensor hub V");
+	Logger.println(FW_VERSION);
+	Logger.println();
+	Logger.println("Designed and created by Sam Groveman (C) 2024");
+	Logger.println();
 
 	// Start event receivers
 	if (!EventBroadcaster::beginReceivers()) {
