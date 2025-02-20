@@ -94,6 +94,19 @@ body {
 
 table {
 	margin: 0 auto;
+	border-radius: 4px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	padding: 0;
+	border: 1px solid #ddd;
+}
+
+td, th {
+	border: 1px solid #ddd;
+	padding: 0.3em;
+}
+
+td {
+	text-align: left;
 }
 
 .file {
