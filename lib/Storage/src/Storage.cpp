@@ -26,10 +26,10 @@ bool Storage::begin() {
 /// @return True on success
 bool Storage::begin(int sdi, int sdo, int sck, int cs, uint32_t frequency, SPIClass &spi) {
 	// Start SPI bus
-	SPI.begin(sck, sdi, sdo);
+	spi.begin(sck, sdi, sdo);
 	bool success = true;
 	Logger.println("Mounting storage...");
-	if (!SD.begin(cs, spi, frequency)) {
+	if (!SD.begin(cs, spi, frequency, "/sd")) {
 		Logger.println("Card mount failed, might need to format card as FAT32 or reduce clock frequency");
 		success = false;
 	} else {
@@ -73,7 +73,7 @@ bool Storage::begin(int clk, int cmd, int d0, int d1, int d2, int d3, uint32_t f
 	if (success) {
 		Logger.println("Mounting storage...");
 		if (!SD_MMC.begin("/sd", false, true, frequency)) {
-			Logger.println("Card mount failed, might need to reduce sd_mmc frequency to 10000");
+			Logger.println("Card mount failed, might need to reduce sd_mmc frequency to 10000 or lower");
 			success = false;
 		} else {
 			uint8_t cardType = SD_MMC.cardType();
