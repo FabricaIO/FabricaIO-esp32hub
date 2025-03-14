@@ -13,11 +13,9 @@
 #include <Configuration.h>
 #include <EventBroadcaster.h>
 #include <ActorManager.h>
-#include <WebServer.h>
 #include <WiFiConfig.h>
 #include <ESPmDNS.h>
 #include <SensorManager.h>
-#include <PeriodicTasks.h>
 #include <PeriodicTasks.h>
 #include <DeviceLoader.h>
 #include <TimeInterface.h>
