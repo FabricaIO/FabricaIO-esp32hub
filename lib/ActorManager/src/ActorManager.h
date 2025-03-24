@@ -25,13 +25,20 @@ class ActorManager {
 		/// @brief Holds all payloads delivered with a action
 		static std::queue<String> payloads;
 
+		static int actorNameToID(String name);
+		static int actionNameToID(String name, int actorPosID);
+
 	public:
 		static bool addActor(Actor* actor);
 		static bool beginActors();
-		static bool addActionToQueue(int actorPosID, String actor, String payload = "");
-		static bool addActionToQueue(int actorPosID, int actor, String payload = "");
-		static std::tuple<bool, String> processActionImmediately(int actorPosID, String actor, String payload = "");
-		static std::tuple<bool, String> processActionImmediately(int actorPosID, int actor, String payload = "");
+		static bool addActionToQueue(String actor, String action, String payload = "");
+		static bool addActionToQueue(int actorPosID, String action, String payload = "");
+		static bool addActionToQueue(String actor, int actionID, String payload = "");
+		static bool addActionToQueue(int actorPosID, int actionID, String payload = "");
+		static std::tuple<bool, String> processActionImmediately(String actor, String action, String payload = "");
+		static std::tuple<bool, String> processActionImmediately(int actorPosID, String action, String payload = "");
+		static std::tuple<bool, String> processActionImmediately(String actor, int actionID, String payload = "");
+		static std::tuple<bool, String> processActionImmediately(int actorPosID, int actionID, String payload = "");
 		static String getActorInfo();
 		static String getActorConfig(int actorPosID);
 		static bool setActorConfig(int actorPosID, String config);

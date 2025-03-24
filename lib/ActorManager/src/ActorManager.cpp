@@ -29,23 +29,20 @@ bool ActorManager::beginActors() {
 }
 
 /// @brief Adds an action to the queue for processing
-/// @param actorPosID The position ID of the actor
+/// @param actor The name of the actor
 /// @param action The name of the action
 /// @param payload An optional JSON string for data payload
 /// @return True on success
-bool ActorManager::addActionToQueue(int actorPosID, String action, String payload) {
-	// Check if receiver is in-use
-	if(actorPosID < 0 || actorPosID >= actors.size()) {
-		Logger.println("Receiver position Id out of range");
+bool ActorManager::addActionToQueue(String actor, String action, String payload) {
+	// Attempt to convert actor name to ID
+	int actorPosID = actorNameToID(actor);
+	if (actorPosID == -1) {
 		return false;
 	}
 
 	// Attempt to convert action name to ID
-	int action_id;
-	try {
-		action_id = actors[actorPosID]->Description.actions.at("actor");
-	} catch (const std::out_of_range& e) {
-		Logger.println("Actor cannot process action");
+	int action_id = actionNameToID(action, actorPosID);
+	if (action_id == -1) {
 		return false;
 	}
 
@@ -55,18 +52,56 @@ bool ActorManager::addActionToQueue(int actorPosID, String action, String payloa
 
 /// @brief Adds an action to the queue for processing
 /// @param actorPosID The position ID of the actor
-/// @param action The ID of the actor
+/// @param action The name of the action
 /// @param payload An optional JSON string for data payload
 /// @return True on success
-bool ActorManager::addActionToQueue(int actorPosID, int action, String payload) {
-	// Check if receiver is in-use
+bool ActorManager::addActionToQueue(int actorPosID, String action, String payload) {
+	// Check if actor exists
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
-		Logger.println("Receiver position ID out of range");
+		Logger.println("Actor position ID out of range");
+		return false;
+	}
+
+	// Attempt to convert action name to ID
+	int action_id = actionNameToID(action, actorPosID);
+	if (action_id == -1) {
+		return false;
+	}
+
+	// Attempt to add action to queue
+	return addActionToQueue(actorPosID, action_id, payload);
+}
+
+/// @brief Adds an action to the queue for processing
+/// @param actor The name of the actor
+/// @param actionID The ID of the action
+/// @param payload An optional JSON string for data payload
+/// @return True on success
+bool ActorManager::addActionToQueue(String actor, int actionID, String payload) {
+	// Attempt to convert actor name to ID
+	int actorPosID = actorNameToID(actor);
+	if (actorPosID == -1) {
+		return false;
+	}
+
+	// Attempt to add action to queue
+	return addActionToQueue(actorPosID, actionID, payload);
+}
+
+/// @brief Adds an action to the queue for processing
+/// @param actorPosID The position ID of the actor
+/// @param actionID The ID of the action
+/// @param payload An optional JSON string for data payload
+/// @return True on success
+bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload) {
+	// Check if actor exists
+	if(actorPosID < 0 || actorPosID >= actors.size()) {
+		Logger.println("Actor position ID out of range");
 		return false;
 	}
 
 	// Create action array for queue
-	int new_action[] { actorPosID, action };
+	int new_action[] { actorPosID, actionID };
 
 	// Add actor array to queue
 	if (xQueueSend(actorQueue, &new_action, 10) != pdTRUE) {
@@ -148,42 +183,111 @@ String ActorManager::getActorVersions() {
 }
 
 /// @brief Executes a actor on a receiver immediately. Use carefully, may cause issues with actors also being processed from queue
+/// @param actor The position ID of the actor receiver
+/// @param action The name of the action
+/// @param payload An optional JSON string for data payload
+/// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
+std::tuple<bool, String> ActorManager::processActionImmediately(String actor, String action, String payload) {
+	// Try to convert actor to ID
+	int actorPosID = actorNameToID(actor);
+	if (actorPosID == -1) {
+		return{ true, R"({"success": false})" };
+	}
+	
+	// Attempt to convert actor name to ID
+	int action_id = actionNameToID(action, actorPosID);
+	if (action_id == -1) {
+		return{ true, R"({"success": false})" };
+	}
+	// Process action
+	return processActionImmediately(actorPosID, action_id, payload);
+}
+
+/// @brief Executes a actor on a receiver immediately. Use carefully, may cause issues with actors also being processed from queue
 /// @param actorPosID The position ID of the actor receiver
 /// @param action The name of the action
 /// @param payload An optional JSON string for data payload
 /// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
 std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, String action, String payload) {
-	// Check if receiver is in-use
+	// Check if actor exists
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
 		Logger.println("Receiver position Id out of range");
 		return { true, R"({"success": false})" };
 	}
 
 	// Attempt to convert actor name to ID
-	int actor_id;
-	try {
-		actor_id = actors[actorPosID]->Description.actions.at(action);
-	} catch (const std::out_of_range& e) {
-		Logger.println("Receiver cannot process actor");
+	int action_id = actionNameToID(action, actorPosID);
+	if (action_id == -1) {
 		return{ true, R"({"success": false})" };
 	}
-	// Process actor
-	return processActionImmediately(actorPosID, actor_id, payload);
+
+	// Process action
+	return processActionImmediately(actorPosID, action_id, payload);
+}
+
+/// @brief Executes a action on a actor immediately. Use carefully, may cause issues with actions also being processed from queue
+/// @param actor The position ID of the actor receiver
+/// @param actionID The ID of the action
+/// @param payload An optional JSON string for data payload
+/// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
+std::tuple<bool, String> ActorManager::processActionImmediately(String actor, int actionID, String payload) {
+	// Try to convert actor to ID
+	int actorPosID = actorNameToID(actor);
+	if (actorPosID == -1) {
+		return{ true, R"({"success": false})" };
+	}
+	
+	// Process action
+	return processActionImmediately(actorPosID, actionID, payload);
 }
 
 /// @brief Executes a action on a actor immediately. Use carefully, may cause issues with actions also being processed from queue
 /// @param actorPosID The position ID of the actor receiver
-/// @param action The ID of the action
+/// @param actionID The ID of the action
 /// @param payload An optional JSON string for data payload
 /// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
-std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, int action, String payload) {
-	// Check if receiver is in-use
+std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, int actionID, String payload) {
+	// Check if actor exists
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
 		Logger.println("Receiver position ID out of range");
 		return { true, R"({"success": false})" };
 	}
-	// Process actor
-	return actors[actorPosID]->receiveAction(action, payload);
+	// Process action
+	return actors[actorPosID]->receiveAction(actionID, payload);
+}
+
+/// @brief Turns the name of an actor into its position ID
+/// @param name Then name of the actor
+/// @return The positionID of the actor or -1 on failure
+int ActorManager::actorNameToID(String name) {
+	int actorPosID;
+	try {
+		auto index = std::find_if(actors.begin(), actors.end(), [name](Actor* a) {return a->Description.name == name;});
+		if (index == actors.end()) {
+			Logger.println("Actor not found");
+			return -1;
+		}
+		actorPosID = index - actors.begin();
+	} catch (const std::exception& e) {
+		Logger.println("Actor not found");
+		return -1;
+	}
+	return actorPosID;
+}
+
+/// @brief Turns the name of an action into its  ID
+/// @param name Then name of the action
+/// @param actorPosID The ID of the of actor the action belongs to
+/// @return The ID of the action or -1 on failure
+int ActorManager::actionNameToID(String name, int actorPosID) {
+	int actor_id;
+	try {
+		actor_id = actors[actorPosID]->Description.actions.at(name);
+	} catch (const std::out_of_range& e) {
+		Logger.println("Receiver cannot process actor");
+		return -1;
+	}
+	return actor_id;
 }
 
 /// @brief Wraps the actor processor task for static access

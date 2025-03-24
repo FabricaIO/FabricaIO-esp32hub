@@ -33,18 +33,25 @@
 				"schema": {
 					"type": "integer"
 				},
-				"required": true,
 				"example": 1
 			},
 			"actor": {
 				"name": "actor",
 				"in": "query",
-				"description": "The positionID of the actor",
+				"description": "The positionID of the actor.  Either this or \"actorName\" is required",
 				"schema": {
 					"type": "integer"
 				},
-				"required": true,
 				"example": 1
+			},
+			"actorName": {
+				"name": "actorName",
+				"in": "query",
+				"description": "The name of the actor.  Either this or \"actor\" is required",
+				"schema": {
+					"type": "string"
+				},
+				"example": "AutoPump"
 			},
 			"action_id": {
 				"name": "id",
@@ -128,8 +135,13 @@
 				"properties": {
 					"actor": {
 						"type": "integer",
-						"description": "The positionID of the actor",
+						"description": "The positionID of the actor. Either this or \"actorName\" are required",
 						"example": 1
+					},
+					"actorName": {
+						"type": "string",
+						"description": "The name of the actor. Either this or \"actor\" are required",
+						"example": "AutoPump"
 					},
 					"id":	{
 						"type": "integer",
@@ -146,8 +158,7 @@
 						"description": "Optional payload of data to accompany action",
 						"example": "15"
 					}
-				},
-				"required": ["actor"]
+				}
 			}
 		}
 	},
@@ -591,6 +602,9 @@
 				"description": "Executes an action immediately and returns any result",
 				"parameters": [					{
 						"$ref": "#/components/parameters/actor"
+					},
+					{
+						"$ref": "#/components/parameters/actorName"
 					},
 					{
 						"$ref": "#/components/parameters/action_id"
