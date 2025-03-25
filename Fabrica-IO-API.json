@@ -703,7 +703,7 @@
 									"config": {
 										"type": "string",
 										"description": "The JSON formatted configuration",
-										"example": "{\"tasksEnabled\":false,\"period\":5000,\"webUsername\":\"Sam\",\"webPassword\":\"Td009326024\",\"useNTP\":true,\"ntpServer1\":\"pool.ntp.org\",\"ntpServer2\":\"time.google.com\",\"ntpServer3\":\"time.windows.com\",\"gmtOffset\":3600,\"daylightOffset\":-18000,\"WiFiClient\":true,\"configSSID\":\"ESP32Hub_Config\",\"configPW\":\"ESP32Hub\",\"hostname\":\"Fabrica-IO\"}"
+										"example": "{\"tasksEnabled\":false,\"period\":5000,\"webUsername\":\"Fabrica\",\"webPassword\":\"Fabrica\",\"ntpUpdatePeriod\":360,\"useNTP\":true,\"ntpServer1\":\"pool.ntp.org\",\"ntpServer2\":\"time.google.com\",\"ntpServer3\":\"time.windows.com\",\"gmtOffset\":3600,\"daylightOffset\":-18000,\"WiFiClient\":true,\"configSSID\":\"ESP32Hub_Config\",\"configPW\":\"ESP32Hub\",\"hostname\":\"Fabrica-IO\"}"
 									},
 									"save": {
 										"type": "string",
