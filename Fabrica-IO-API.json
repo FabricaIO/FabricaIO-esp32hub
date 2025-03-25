@@ -4,6 +4,24 @@
 		"title":"Fabrica-IO Device Hub",
 		"version":"1.0"
 	},
+	"tags": [
+		{
+			"name": "Hub",
+			"description": "Info and controls for the device hub"
+		},
+		{
+			"name": "Storage",
+			"description": "Interface for hub storage"
+		},
+		{
+			"name": "Actors",
+			"description": "Interface for actor devices"
+		},
+		{
+			"name": "Sensors",
+			"description": "Interface for sensor devices"
+		}
+	],
 	"servers": [
 		{
 			"url":"http://{username}:{password}@{device_hub_ip}",
@@ -166,6 +184,7 @@
 		"/upload-file": {
 			"post": {
 				"description": "Uploads a file to the device",
+				"tags": ["Storage"],
 				"requestBody": {
 					"$ref": "#/components/requestBodies/upload_file"
 				},
@@ -190,6 +209,7 @@
 		"/delete": {
 			"post":{
 				"description": "Deletes a file from the device",
+				"tags": ["Storage"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -231,6 +251,7 @@
 		"/sensors/": {
 			"get":{
 				"description": "Gets a description of all currently connected sensors",
+				"tags": ["Sensors"],
 				"responses": {
 					"200": {
 						"description": "JSON object of all sensors",
@@ -304,6 +325,7 @@
 		"/sensors/config": {
 			"get": {
 				"description": "Retrieves the current configuration for a given senor",
+				"tags": ["Sensors"],
 				"parameters": [ 
 					{
 						"$ref": "#/components/parameters/sensor"
@@ -326,6 +348,7 @@
 			},
 			"post": {
 				"description": "Updates the configuration for a sensor",
+				"tags": ["Sensors"],
 				"requestBody":{
 					"content": {
 						"multipart/form-data": {
@@ -358,6 +381,7 @@
 		"/sensors/measurement": {
 			"get": {
 				"description": "Retrieves the most recent sensor measurements from all sensors",
+				"tags": ["Sensors"],
 				"parameters": [
 					{
 						"name": "update",
@@ -412,6 +436,7 @@
 		"/sensors/calibrate": {
 			"post": {
 				"description": "Runs a calibration routine on a sensor",
+				"tags": ["Sensors"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -464,6 +489,7 @@
 		"/actors/": {
 			"get": {
 				"description": "Gets a description of all currently connected actors",
+				"tags": ["Actors"],
 				"responses": {
 					"200": {
 						"description": "JSON object collection of all sensors",
@@ -527,6 +553,7 @@
 		"/actors/config": {
 			"get": {				
 				"description": "Retrieves the current configuration for a given actor",
+				"tags": ["Actors"],
 				"parameters": [ 
 					{
 						"$ref": "#/components/parameters/actor"
@@ -549,6 +576,7 @@
 			},
 			"post": {
 				"description": "Updates the configuration for an actor",
+				"tags": ["Actors"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -581,6 +609,7 @@
 		"/actors/add": {
 			"post": {
 				"description": "Adds an action to the queue to be executed in order",
+				"tags": ["Actors"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -600,6 +629,7 @@
 		"/actors/execute": {
 			"get": {
 				"description": "Executes an action immediately and returns any result",
+				"tags" : ["Actors"],
 				"parameters": [					{
 						"$ref": "#/components/parameters/actor"
 					},
@@ -625,6 +655,7 @@
 			},
 			"post": {
 				"description": "Executes an action immediately and returns any result",
+				"tags": ["Actors"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -644,6 +675,7 @@
 		"/config": {
 			"get": {
 				"description": "Retrieves the current device hub configuration",
+				"tags": ["Hub"],
 				"responses": {
 					"200": {
 						"description": "JSON object of current configuration",
@@ -661,6 +693,7 @@
 			},
 			"post": {
 				"description": "Updates the device hub configuration",
+				"tags": ["Hub"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -693,6 +726,7 @@
 		"/time": {
 			"get": {
 				"description": "Retrieves the current time on the device",
+				"tags": ["Hub"],
 				"responses": {
 					"200": {
 						"description": "The current time",
@@ -710,6 +744,7 @@
 			},
 			"post": {
 				"description": "Sets the time on the device",
+				"tags": ["Hub"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -737,6 +772,7 @@
 		"/freeSpace": {
 			"get": {
 				"description": "Retrieves the amount of free space on the device storage",
+				"tags": ["Storage"],
 				"responses": {
 					"200": {
 						"description": "The current free space in bytes",
@@ -760,6 +796,7 @@
 		"/reset": {
 			"put": {
 				"description": "Resets the WiFi configuration on the device",
+				"tags": ["Hub"],
 				"responses": {
 					"200": {
 						"description": "OK"
@@ -770,6 +807,7 @@
 		"/reboot": {
 			"put": {
 				"description": "Reboots the device hub",
+				"tags": ["Hub"],
 				"responses": {
 					"200": {
 						"description": "OK"
@@ -780,6 +818,7 @@
 		"/list": {
 			"get": {
 				"description": "Retrieves the complete file list of a directory",
+				"tags": ["Storage"],
 				"parameters": [
 					{
 						"name": "path",
@@ -836,6 +875,7 @@
 		"/download": {
 			"get": {
 				"description": "Downloads a file from the device storage",
+				"tags": ["Storage"],
 				"parameters": [
 					{
 						"$ref": "#/components/parameters/file_path"
@@ -860,6 +900,7 @@
 		"/restorefile": {
 			"post": {
 				"description": "Restores a file on the device storage from a string",
+				"tags": ["Storage"],
 				"requestBody": {
 					"content": {
 						"multipart/form-data": {
@@ -891,6 +932,7 @@
 		"/version": {
 			"get": {
 				"description": "Retrieves the versions of all connected devices",
+				"tags": ["Hub"],
 				"responses": {
 					"200": {
 						"description": "JSON object of all device software versions",
@@ -931,6 +973,7 @@
 		"/update": {
 			"post": {
 				"description": "Updates firmware on device hub",
+				"tags": ["Hub"],
 				"requestBody": {
 					"$ref": "#/components/requestBodies/upload_file"
 				},
