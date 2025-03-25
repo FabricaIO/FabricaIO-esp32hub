@@ -35,6 +35,9 @@ class Configuration {
 			/// @brief Whether to use NTP for time data
 			bool useNTP = true;
 
+			/// @brief The NTP update period in milliseconds
+			uint32_t ntpUpdatePeriod = 21600000;
+
 			/// @brief NTP server 1
 			String ntpServer1 = "pool.ntp.org";
 
