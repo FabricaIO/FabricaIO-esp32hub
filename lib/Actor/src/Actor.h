@@ -33,4 +33,6 @@ class Actor : public DeviceConfig {
 
 		virtual bool begin();
 		virtual std::tuple<bool, String> receiveAction(int action, String payload = "");
+		String getConfig();
+		bool setConfig(String config, bool save);
 };
