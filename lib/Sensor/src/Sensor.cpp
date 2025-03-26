@@ -23,7 +23,7 @@ String Sensor::getConfig() {
 	JsonDocument doc;
 
 	// Name is only setting for default config
-	doc["name"] = Description.name;
+	doc["Name"] = Description.name;
 
 	// Allocate string
 	String output;

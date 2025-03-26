@@ -19,6 +19,9 @@ class SensorManager {
 
 		/// @brief Describes all info associated with a measurement
 		struct measurement {
+			/// @brief The name of the sensor
+			String name;
+
 			/// @brief The parameter being measured
 			String parameter;
 

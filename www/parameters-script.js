@@ -20,9 +20,9 @@ function addParameters(parameters) {
 	if (parameters.measurements.length === 0) {
 		html ='<p>No active sensors</p>';
 	} else {
-	    html = '<table><tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>';
+	    html = '<table><tr><th>Name</th><th>Parameter</th><th>Value</th><th>Unit</th></tr>';
 		parameters.measurements.forEach(parameter => {
-				html += '<tr><td>' + parameter.parameter + '</td><td>' + parameter.value + '</td><td>' + parameter.unit + '</td></tr>';
+				html += '<tr><td>' + parameter.name + '</td><td>' + parameter.parameter + '</td><td>' + parameter.value + '</td><td>' + parameter.unit + '</td></tr>';
 		});
 		html += '</table>';
 	}

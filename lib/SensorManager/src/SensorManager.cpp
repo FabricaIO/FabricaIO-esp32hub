@@ -41,6 +41,7 @@ bool SensorManager::takeMeasurement() {
 		// Add measurements to results
 		for (int i = 0; i < s->Description.parameterQuantity; i++) {
 			measurements.push_back(measurement {
+				.name = s->Description.name,
 				.parameter = s->Description.parameters[i],
 				.value = s->values[i],
 				.unit = s->Description.units[i]
@@ -59,6 +60,7 @@ String SensorManager::getLastMeasurement() {
 	JsonArray measurement_array = doc["measurements"].to<JsonArray>();
 	// Add measurements to array
 	for (int i = 0; i < measurements.size(); i++) {
+		measurement_array[i]["name"] = measurements[i].name;
 		measurement_array[i]["parameter"] = measurements[i].parameter;
 		measurement_array[i]["value"] = measurements[i].value;
 		measurement_array[i]["unit"] = measurements[i].unit;
