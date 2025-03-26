@@ -169,7 +169,7 @@ bool Webserver::ServerStart() {
 	// Adds an action to the action queue using the action's name or ID
 	server->on("/actors/add", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess) {
-			if (request->hasParam("actor", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
+			if ((request->hasParam("actor", true) || request->hasParam("actorName", true)) && ((request->hasParam("id", true) || request->hasParam("name", true)))) {
 				// Parse data payload
 				int actorPosID = request->getParam("actor", true)->value().toInt();
 				String payload = "";
@@ -207,7 +207,7 @@ bool Webserver::ServerStart() {
 	// Sends a action to an actor immediately using the action's name or ID, and returns any response
 	server->on("/actors/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
-			if (request->hasParam("actor") && (request->hasParam("id") || request->hasParam("name"))) {
+			if ((request->hasParam("actor") || request->hasParam("actorName")) && ((request->hasParam("id") || request->hasParam("name")))) {
 				// Parse data payload
 				String payload = "";
 				if (request->hasParam("payload")) {
@@ -215,16 +215,16 @@ bool Webserver::ServerStart() {
 				}
 				std::tuple<bool, String> result;
 				if (request->hasParam("id")) {
-					if (request->hasParam("actor", true)) {
-						result = ActorManager::processActionImmediately(request->getParam("actor", true)->value().toInt(), request->getParam("id", true)->value().toInt(), payload);
+					if (request->hasParam("actor")) {
+						result = ActorManager::processActionImmediately(request->getParam("actor")->value().toInt(), request->getParam("id")->value().toInt(), payload);
 					} else {
-						result = ActorManager::processActionImmediately(request->getParam("actorName", true)->value(), request->getParam("id", true)->value().toInt(), payload);
+						result = ActorManager::processActionImmediately(request->getParam("actorName")->value(), request->getParam("id")->value().toInt(), payload);
 					}
 				} else {
-					if (request->hasParam("actor", true)) {
-						result = ActorManager::processActionImmediately(request->getParam("actor", true)->value().toInt(), request->getParam("name", true)->value(), payload);
+					if (request->hasParam("actor")) {
+						result = ActorManager::processActionImmediately(request->getParam("actor")->value().toInt(), request->getParam("name")->value(), payload);
 					} else {
-						result = ActorManager::processActionImmediately(request->getParam("actorName", true)->value(), request->getParam("name", true)->value(), payload);
+						result = ActorManager::processActionImmediately(request->getParam("actorName")->value(), request->getParam("name")->value(), payload);
 					}
 				}
 				String mime = "application/json";
@@ -244,19 +244,24 @@ bool Webserver::ServerStart() {
 	// Sends an action to a actor immediately using the action'a name or ID, and returns any response
 	server->on("/actors/execute", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess) {	
-			if (request->hasParam("actor", true) && (request->hasParam("id", true) || request->hasParam("name", true))) {
+			if ((request->hasParam("actor", true) || request->hasParam("actorName", true)) && ((request->hasParam("id", true) || request->hasParam("name", true)))) {
 				// Parse data payload
 				bool id = true;
 				int actorPosID = request->getParam("actor", true)->value().toInt();
 				String payload = "";
-				if (request->hasParam("payload", true)) {
-					payload = request->getParam("payload", true)->value();
-				}
 				std::tuple<bool, String> result;
-				if (request->hasParam("id", true)) {
-					result = ActorManager::processActionImmediately(actorPosID, request->getParam("id", true)->value().toInt(), payload);
+				if (request->hasParam("id")) {
+					if (request->hasParam("actor", true)) {
+						result = ActorManager::processActionImmediately(request->getParam("actor", true)->value().toInt(), request->getParam("id", true)->value().toInt(), payload);
+					} else {
+						result = ActorManager::processActionImmediately(request->getParam("actorName", true)->value(), request->getParam("id", true)->value().toInt(), payload);
+					}
 				} else {
-					result = ActorManager::processActionImmediately(actorPosID, request->getParam("name", true)->value(), payload);
+					if (request->hasParam("actor", true)) {
+						result = ActorManager::processActionImmediately(request->getParam("actor", true)->value().toInt(), request->getParam("name", true)->value(), payload);
+					} else {
+						result = ActorManager::processActionImmediately(request->getParam("actorName", true)->value(), request->getParam("name", true)->value(), payload);
+					}
 				}
 				String mime = "application/json";
 				if (!std::get<0>(result)) {
