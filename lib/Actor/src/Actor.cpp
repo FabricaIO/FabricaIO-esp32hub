@@ -3,6 +3,7 @@
 /// @brief Sets up the actor
 /// @return True on success
 bool Actor::begin() {
+	// This obviously won't work and needs a solution on how to store the device name
 	if (checkConfig("/settings/act/" + Description.name + ".json")) {
 		return setConfig(Storage::readFile("/settings/act/" + Description.name + ".json"), false);
 	}

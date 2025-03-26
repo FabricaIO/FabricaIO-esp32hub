@@ -3,6 +3,7 @@
 /// @brief Used to run initial setup and configure a sensor
 /// @return True on success
 bool Sensor::begin() {
+	// This obviously won't work and needs a solution on how to store the device name
 	if (checkConfig("/settings/sen/" + Description.name + ".json")) {
 		return setConfig(Storage::readFile("/settings/sen/" + Description.name + ".json"), false);
 	}
