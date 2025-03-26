@@ -14,7 +14,7 @@ bool PeriodicTask::enableTask(bool enable) {
 /// @brief Checks if a task period has elapsed and the task should run
 /// @param elapsed The time elapsed since last check
 /// @return True if task should run
-bool PeriodicTask::taskPeriodTriggered(long elapsed) {
+bool PeriodicTask::taskPeriodTriggered(ulong elapsed) {
 	totalElapsed += elapsed;
 	if (totalElapsed > task_config.taskPeriod) {
 		totalElapsed = 0;
