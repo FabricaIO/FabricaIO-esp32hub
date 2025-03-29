@@ -31,8 +31,7 @@ class Actor : public DeviceConfig {
 			String version = "0.0.1";
 		} Description;
 
-		virtual bool begin();
+		Actor(String DeviceName);
+		virtual bool begin() = 0;
 		virtual std::tuple<bool, String> receiveAction(int action, String payload = "");
-		String getConfig();
-		bool setConfig(String config, bool save);
 };

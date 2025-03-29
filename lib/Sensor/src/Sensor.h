@@ -44,9 +44,8 @@ class Sensor : public DeviceConfig {
 		/// @brief Stores measured values
 		std::vector<double> values;
 
-		virtual bool begin();
-		virtual bool takeMeasurement();
+		Sensor(String DeviceName);
+		virtual bool begin() = 0;
+		virtual bool takeMeasurement() = 0;
 		virtual std::tuple<Sensor::calibration_response, String> calibrate(int step);
-		String getConfig();
-		bool setConfig(String config, bool save);
 };
