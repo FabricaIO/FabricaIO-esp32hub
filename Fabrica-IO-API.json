@@ -655,7 +655,7 @@
 		
 		"/actors/execute": {
 			"get": {
-				"description": "Executes an action immediately and returns any result",
+				"description": "Executes an action immediately and returns any result. Warning: actions taking longer than 4 seconds to complete can trigger the watchdog timer and cause a reboot. Use \"add\" to queue actions instead.",
 				"tags" : ["Actors"],
 				"parameters": [					{
 						"$ref": "#/components/parameters/actor"
@@ -681,7 +681,7 @@
 				}
 			},
 			"post": {
-				"description": "Executes an action immediately and returns any result",
+				"description": "Executes an action immediately and returns any result. Warning: actions taking longer than 4 seconds to complete can trigger the watchdog timer and cause a reboot. Use \"add\" to queue actions instead.",
 				"tags": ["Actors"],
 				"requestBody": {
 					"content": {
