@@ -82,7 +82,7 @@ void setup() {
 		while(true);
 	}
 
-	// Show yellow during startup
+	// Broadcast startup event
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Starting);
 
 	// Start storage
