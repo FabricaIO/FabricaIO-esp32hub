@@ -204,6 +204,41 @@ bool Webserver::ServerStart() {
 		}
 	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
 
+	server->on("/actors/add", HTTP_GET, [this](AsyncWebServerRequest *request) {
+		if (POSTSuccess){
+			if ((request->hasParam("actor") || request->hasParam("actorName")) && ((request->hasParam("id") || request->hasParam("name")))) {
+				// Parse data payload
+				String payload = "";
+				if (request->hasParam("payload")) {
+					payload = request->getParam("payload")->value();
+				}
+				bool success;
+				if (request->hasParam("id")) {
+					if (request->hasParam("actor")) {
+						success = ActorManager::addActionToQueue(request->getParam("actor")->value().toInt(), request->getParam("id")->value().toInt(), payload);
+					} else {
+						success = ActorManager::addActionToQueue(request->getParam("actorName")->value(), request->getParam("id")->value().toInt(), payload);
+					}
+				} else {
+					if (request->hasParam("actor")) {
+						success = ActorManager::addActionToQueue(request->getParam("actor")->value().toInt(), request->getParam("name")->value(), payload);
+					} else {
+						success = ActorManager::addActionToQueue(request->getParam("actorName")->value(), request->getParam("name")->value(), payload);
+					}
+				}
+				if (!success) {
+					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not add signal to queue");
+				} else {
+					request->send(HTTP_CODE_OK, "text/plain", "OK");
+				}
+			} else {
+				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
+			}
+		} else {
+			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
+		}
+	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+
 	// Sends a action to an actor immediately using the action's name or ID, and returns any response
 	server->on("/actors/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){

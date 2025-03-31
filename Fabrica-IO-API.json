@@ -624,8 +624,35 @@
 						"description": "OK"
 					}
 				}
+			},
+			"get": {
+				"description": "Adds an action to the queue to be executed in order",
+				"tags": ["Actors"],
+				"parameters": [					{
+						"$ref": "#/components/parameters/actor"
+					},
+					{
+						"$ref": "#/components/parameters/actorName"
+					},
+					{
+						"$ref": "#/components/parameters/action_id"
+					},
+					{
+						"$ref": "#/components/parameters/action_name"
+					
+					},
+					{
+						"$ref": "#/components/parameters/action_payload"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
 			}
 		},
+		
 		"/actors/execute": {
 			"get": {
 				"description": "Executes an action immediately and returns any result",
