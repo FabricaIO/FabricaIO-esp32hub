@@ -8,7 +8,8 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # List of subs to pull
 declare -a subs=(
     "actor-DataTemplate"
-    "actor-DFAutoPeristalticPump" 
+    "actor-DFAutoPeristalticPump"
+    "actor-DFPeriodicPeristalticPump"
     "actor-DFPeristalticPump"
     "actor-GenericOutput"
     "actor-LEDPWM"
