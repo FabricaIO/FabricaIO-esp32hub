@@ -3,7 +3,6 @@
 /// @brief Holds current firmware version
 extern const String FW_VERSION;
 
-/// @brief Indicates if the hub booted successfully
 extern bool POSTSuccess;
 
 // Initialize static variables

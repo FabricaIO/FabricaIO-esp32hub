@@ -69,7 +69,7 @@ void setup() {
 		while(true);
 	}
 	// Let any serial monitors connect
-	delay(500);
+	delay(1000);
 	Logger.print("Booting ESP32 sensor hub V");
 	Logger.println(FW_VERSION);
 	Logger.println();
