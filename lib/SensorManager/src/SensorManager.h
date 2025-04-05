@@ -17,6 +17,7 @@ class SensorManager {
 		/// @brief Collects all the senors that are in use
 		static std::vector<Sensor*> sensors;
 
+	public:
 		/// @brief Describes all info associated with a measurement
 		struct measurement {
 			/// @brief The name of the sensor
@@ -31,8 +32,6 @@ class SensorManager {
 			/// @brief The unit of the measurement
 			String unit;
 		};
-
-	public:
 		/// @brief Contains the most recently requested measurements
 		static std::vector<measurement> measurements;
 
@@ -41,6 +40,7 @@ class SensorManager {
 		static bool takeMeasurement();
 		static String getLastMeasurement();
 		static String getSensorInfo();
+		static std::vector<Sensor*> getSensors();
 		static String getSensorConfig(int sensorPosID);
 		static bool setSensorConfig(int sensorPosID, String config);
 		static String getSensorVersions();

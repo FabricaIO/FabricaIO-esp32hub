@@ -40,6 +40,7 @@ class ActorManager {
 		static std::tuple<bool, String> processActionImmediately(String actor, int actionID, String payload = "");
 		static std::tuple<bool, String> processActionImmediately(int actorPosID, int actionID, String payload = "");
 		static String getActorInfo();
+		static std::vector<Actor*> getActors();
 		static String getActorConfig(int actorPosID);
 		static bool setActorConfig(int actorPosID, String config);
 		static String getActorVersions();

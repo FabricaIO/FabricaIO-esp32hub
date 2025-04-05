@@ -113,24 +113,24 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 	return true;
 }
 
-/// @brief Retrieves the information on all available actors and their actors
+/// @brief Retrieves the information on all available actors and their actions
 /// @return A JSON string of the information
 String ActorManager::getActorInfo() {
 	// Allocate the JSON document
 	JsonDocument doc;
 	// Create array of actors
-	JsonArray receiver_array = doc["actors"].to<JsonArray>();
+	JsonArray actor_array = doc["actors"].to<JsonArray>();
 
 	for (int i = 0; i < actors.size(); i++) {
 		// Add receiver description to JSON document 
-		receiver_array[i]["positionID"] = i;
-		receiver_array[i]["description"]["actionQuantity"] = actors[i]->Description.actionQuantity;
-		receiver_array[i]["description"]["type"] = actors[i]->Description.type;
-		receiver_array[i]["description"]["name"] = actors[i]->Description.name;
-		receiver_array[i]["description"]["version"] = actors[i]->Description.version;
+		actor_array[i]["positionID"] = i;
+		actor_array[i]["description"]["actionQuantity"] = actors[i]->Description.actionQuantity;
+		actor_array[i]["description"]["type"] = actors[i]->Description.type;
+		actor_array[i]["description"]["name"] = actors[i]->Description.name;
+		actor_array[i]["description"]["version"] = actors[i]->Description.version;
 		// Add actors and IDs to JSON document
 		for (auto const &a : actors[i]->Description.actions) {
-			receiver_array[i]["actions"][a.second] = a.first;
+			actor_array[i]["actions"][a.second] = a.first;
 		}
 	}
 	// Create string to hold output
@@ -138,6 +138,12 @@ String ActorManager::getActorInfo() {
 	// Serialize to string
 	serializeJson(doc, output);
 	return output;
+}
+
+/// @brief Gets all actors
+/// @return A vector with pointers to each actor
+std::vector<Actor*> ActorManager::getActors() {
+	return actors;
 }
 
 

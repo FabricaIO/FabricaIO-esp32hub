@@ -96,6 +96,13 @@ String SensorManager::getSensorInfo() {
 	return output;
 }
 
+/// @brief Gets all sensors
+/// @return A vector with pointers to each sensor
+std::vector<Sensor*> SensorManager::getSensors() {
+	return sensors;
+}
+
+
 /// @brief Gets any available config settings for a sensor device
 /// @param sensorPosID The position ID of the sensor
 /// @return A JSON string of configurable settings
