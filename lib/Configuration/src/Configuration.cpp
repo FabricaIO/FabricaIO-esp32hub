@@ -51,7 +51,7 @@ bool Configuration::updateConfig(String config) {
 	currentConfig.webUsername = doc["webUsername"] | "Fabrica";
 	currentConfig.webPassword = doc["webPassword"] | "Fabrica";
 	currentConfig.useNTP = doc["useNTP"] | true;
-	currentConfig.ntpUpdatePeriod = (doc["ntpUpdatePeriod"].as<uint32_t>() | 360) * 60000; // Convert from minutes to milliseconds
+	currentConfig.ntpUpdatePeriod = (doc["ntpUpdatePeriod"] | 360) * 60000; // Convert from minutes to milliseconds
 	currentConfig.ntpServer1 = doc["ntpServer1"].as<String>();
 	currentConfig.ntpServer2 = doc["ntpServer2"].as<String>();
 	currentConfig.ntpServer3 = doc["ntpServer3"].as<String>();
