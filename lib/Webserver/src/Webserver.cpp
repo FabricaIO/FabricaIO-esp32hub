@@ -170,12 +170,11 @@ bool Webserver::ServerStart() {
 		if (POSTSuccess) {
 			if ((request->hasParam("actor", true) || request->hasParam("actorName", true)) && ((request->hasParam("id", true) || request->hasParam("name", true)))) {
 				// Parse data payload
-				int actorPosID = request->getParam("actor", true)->value().toInt();
 				String payload = "";
 				if (request->hasParam("payload", true)) {
 					payload = request->getParam("payload", true)->value();
 				}
-				// Attempt to add signal to queue
+				// Attempt to add action to queue
 				bool success = false;
 				if (request->hasParam("id", true)) {
 					if (request->hasParam("actor", true)) {
@@ -211,7 +210,8 @@ bool Webserver::ServerStart() {
 				if (request->hasParam("payload")) {
 					payload = request->getParam("payload")->value();
 				}
-				bool success;
+				// Attempt to add action to queue
+				bool success = false;
 				if (request->hasParam("id")) {
 					if (request->hasParam("actor")) {
 						success = ActorManager::addActionToQueue(request->getParam("actor")->value().toInt(), request->getParam("id")->value().toInt(), payload);

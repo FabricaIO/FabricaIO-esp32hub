@@ -45,6 +45,13 @@ body {
 	width: 100%;
 }
 
+.home-button-container {
+	display: flex;
+	flex-direction: row;
+	align-items: left;
+	width: 20%;
+}
+
 #up-file {
 	max-width: 600px;
 	height: 44px;

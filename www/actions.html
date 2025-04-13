@@ -7,20 +7,19 @@
 	<head>        
 		<link rel="stylesheet" href="/main.css">
 		<script src="/ajax-script.js"></script>
-		<script src="/parameters-script.js"></script>
-		<title>ESP32 Device Hub | Sensor Parameters</title>
+		<script src="/actions-script.js"></script>
+		<title>ESP32 Device Hub | Actions</title>
 	</head>
 	<body>
 		<div id="wrapper">
 			<div class="home-button-container">
 				<a class="def-button" href="/">Home</a>
 			</div>
-			<h1>Sensor Parameters</h1>
+			<h1>Actions</h1>
+			<label for="payload">Payload</label>
+			<input class="normal-input" type="text" id="payload">
 			<div id="message"></div>
-			<div class="button-container">
-				<button class="def-button" id="refresh">Refresh Data</button>
-			</div>
-			<div id="parameters"></div>
+			<div id="actions"></div>
 		</div>
 	</body>
 	</html>
