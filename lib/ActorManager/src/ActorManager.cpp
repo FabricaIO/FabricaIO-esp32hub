@@ -110,7 +110,7 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 	}
 	// Add payload to queue
 	String* payload_ptr = new String(payload);
-	if (xQueueSend(payloads, &payload_ptr, 10) != pdTRUE) {
+	if (xQueueSend(payloads, &payload_ptr, 100 / portTICK_PERIOD_MS) != pdTRUE) {
 		Logger.println("Payload queue full");
 		return false;
 	}
