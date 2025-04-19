@@ -27,7 +27,7 @@ bool SensorManager::beginSensors() {
 }
 
 /// @brief Takes a measurement form each sensors and stores it in the Measurements object
-/// @return True if each sensor completes a measurements successfully
+/// @return True if each sensor completes a measurement successfully
 bool SensorManager::takeMeasurement() {
 	// Clears any old measurements
 	measurements.clear();
