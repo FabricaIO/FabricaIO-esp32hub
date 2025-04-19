@@ -3,7 +3,7 @@
 // Initialize static variables
 std::vector<Actor*> ActorManager::actors;
 QueueHandle_t ActorManager::actorQueue = xQueueCreate(15, sizeof(int[2]));
-std::queue<String> ActorManager::payloads;
+QueueHandle_t ActorManager::payloads = xQueueCreate(15, sizeof(String*));
 
 /// @brief Adds an actor to the in-use list
 /// @param actor A pointer to the actor to add
@@ -109,7 +109,11 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 		return false;
 	}
 	// Add payload to queue
-	payloads.push(payload);
+	String* payload_ptr = new String(payload);
+	if (xQueueSend(payloads, &payload_ptr, 10) != pdTRUE) {
+		Logger.println("Payload queue full");
+		return false;
+	}
 	return true;
 }
 
@@ -300,11 +304,15 @@ int ActorManager::actionNameToID(String name, int actorPosID) {
 /// @param arg Not used
 void ActorManager::actionProcessor(void* arg) {
 	int action[2];
+	String* payload;
 	while(true) {
 		if (xQueueReceive(actorQueue, &action, 10) == pdTRUE)
 		{
-			actors[action[0]]->receiveAction(action[1], payloads.front());
-			payloads.pop();
+			if (xQueueReceive(payloads, &payload, 100 / portTICK_PERIOD_MS) == pdTRUE)
+			{
+				actors[action[0]]->receiveAction(action[1], *payload);
+			}
+			delete payload;
 		}
 		delay(100);
 	}

@@ -23,7 +23,7 @@ class ActorManager {
 		static QueueHandle_t actorQueue;
 
 		/// @brief Holds all payloads delivered with a action
-		static std::queue<String> payloads;
+		static QueueHandle_t payloads;
 
 		static int actorNameToID(String name);
 		static int actionNameToID(String name, int actorPosID);
