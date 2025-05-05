@@ -5,9 +5,9 @@
 /// @return True on success
 bool PeriodicTask::enableTask(bool enable) {
 	if (enable) {
-		return PeriodicTasks::addTask(task_config.taskName, std::bind(&PeriodicTask::runTask, this, std::placeholders::_1));
+		return PeriodicTasks::addTask(task_config.get_taskName(), std::bind(&PeriodicTask::runTask, this, std::placeholders::_1));
 	} else {
-		return PeriodicTasks::removeTask(task_config.taskName);
+		return PeriodicTasks::removeTask(task_config.get_taskName());
 	}
 }
 
