@@ -21,7 +21,7 @@ class EventBroadcaster {
 
 	public:
 		/// @brief Stores possible events to raise
-		enum Events { Clear, Starting, Ready, Updating, Rebooting, Running, WifiConfig, Error };
+		enum Events { Clear, Running, Ready, Starting, WifiConfig, Updating, Rebooting, Error };
 
 		static bool beginReceivers();
 		static bool broadcastEvent(Events event);
