@@ -111,6 +111,7 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 	// Add payload to queue
 	String* payload_ptr = new String(payload);
 	if (xQueueSend(payloads, &payload_ptr, 100 / portTICK_PERIOD_MS) != pdTRUE) {
+		delete payload_ptr;
 		Logger.println("Payload queue full");
 		return false;
 	}
@@ -310,9 +311,15 @@ void ActorManager::actionProcessor(void* arg) {
 		{
 			if (xQueueReceive(payloads, &payload, 100 / portTICK_PERIOD_MS) == pdTRUE)
 			{
-				actors[action[0]]->receiveAction(action[1], *payload);
+				try {
+					actors[action[0]]->receiveAction(action[1], *payload);
+					delete payload;
+				}
+				catch (...) {
+					delete payload;
+					Logger.println("Exception in processing action payload from queue");
+				}
 			}
-			delete payload;
 		}
 		delay(100);
 	}
