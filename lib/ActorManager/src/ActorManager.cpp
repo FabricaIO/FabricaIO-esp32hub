@@ -307,7 +307,8 @@ void ActorManager::actionProcessor(void* arg) {
 	int action[2];
 	String* payload;
 	while(true) {
-		if (xQueueReceive(actorQueue, &action, 10) == pdTRUE)
+		// Process all actions in the queue
+		while (xQueueReceive(actorQueue, &action, 10) == pdTRUE)
 		{
 			if (xQueueReceive(payloads, &payload, 100 / portTICK_PERIOD_MS) == pdTRUE)
 			{
@@ -320,6 +321,7 @@ void ActorManager::actionProcessor(void* arg) {
 					Logger.println("Exception in processing action payload from queue");
 				}
 			}
+			delay(10);
 		}
 		delay(100);
 	}
