@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 # Adds PlatformIO post-processing to merge all the ESP flash images into a single image.
+# From https://github.com/platformio/platform-espressif32/issues/1078#issuecomment-2219671743
 
 import os
 
