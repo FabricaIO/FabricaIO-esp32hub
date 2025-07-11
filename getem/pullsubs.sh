@@ -28,7 +28,7 @@ declare -a subs=(
     "logreceiver-USBCDCLogger"
     "sensor-ADS1X15"
     "sensor-BoschBME280"
-    "sensor-DFAirquality"
+    "sensor-DFAirQuality"
     "sensor-DFCO2Sensor"
     "sensor-DFGasSensor"
     "sensor-DFMultiEnvironmental"
