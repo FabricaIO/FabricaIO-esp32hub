@@ -30,6 +30,5 @@ function addActors(actors) {
 
 // Adds an action to the execution queue with any payload
 function executeAction(actor, action) {
-	document.getElementById("message").innerHTML ="";
 	POSTRequest("/actors/add", "Action added to queue", {actorName: actor, name: action, payload: document.getElementById("payload").value});
 }

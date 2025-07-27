@@ -10,6 +10,7 @@
 // Returns the response to the optional callback provided
 function POSTRequest(path, successMessage, params = {}, callback = null) {
 	let xhr = new XMLHttpRequest(), data = new FormData();
+	document.getElementById('message').innerHTML = "";
 	xhr.responseType = 'json';
 	if (Object.keys(params).length !== 0 ) {
 		for (let param in params) {
@@ -36,6 +37,7 @@ function POSTRequest(path, successMessage, params = {}, callback = null) {
 // Returns the response to the optional callback provided
 function PUTRequest(path, successMessage, params = {}, callback = null) {
 	let xhr = new XMLHttpRequest(), data = new FormData();
+	document.getElementById('message').innerHTML = "";
 	xhr.responseType = 'json';
 	if (Object.keys(params).length !== 0 ) {
 		for (let param in params) {
@@ -62,6 +64,7 @@ function PUTRequest(path, successMessage, params = {}, callback = null) {
 // Returns the response to the optional callback provided
 function GETRequest(path, callback = null, params = {}) {
     let xhr = new XMLHttpRequest();
+	document.getElementById('message').innerHTML = "";
 	xhr.responseType = 'json';
     if (Object.keys(params).length !== 0 ) {
 		let first = true

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # FabricaIO-esp32hub extra modules
-# 
 
 START_DIR=${PWD}
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
