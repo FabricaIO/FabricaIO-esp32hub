@@ -14,17 +14,17 @@ int Webserver::upload_response_code = 201;
 /// @param Webserver A pointer to an AsyncWebServer object
 Webserver::Webserver(AsyncWebServer* Webserver) {
 	server = Webserver;
+}
+
+/// @brief Starts the update server
+bool Webserver::ServerStart() {
+	Logger.println("Starting web server");
 	authMiddleware.setAuthType(AsyncAuthType::AUTH_DIGEST);
 	authMiddleware.setRealm("Fabrica-IO");
 	authMiddleware.setUsername(Configuration::currentConfig.webUsername.c_str());
 	authMiddleware.setPassword(Configuration::currentConfig.webPassword.c_str());
 	authMiddleware.setAuthFailureMessage("Authentication failed");
 	authMiddleware.generateHash();
-}
-
-/// @brief Starts the update server
-bool Webserver::ServerStart() {
-	Logger.println("Starting web server");
 
 	// Create root directory if needed
 	if (!Storage::fileExists("/www"))
