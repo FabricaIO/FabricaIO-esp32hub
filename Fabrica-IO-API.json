@@ -24,25 +24,24 @@
 	],
 	"servers": [
 		{
-			"url":"http://{username}:{password}@{device_hub_ip}",
+			"url":"http://{device_hub_ip}",
 			"description": "Device hub",
 			"variables": {
 				"device_hub_ip":{
 					"default": "192.168.1.213",
 					"description": "The device hub IP address."
-					},
-				"username":{
-					"default": "Fabrica",
-					"description": "The interface username."
-				},
-				"password":{
-					"default": "Fabrica",
-					"description": "The interface password."
 				}
 			}
 		}
 	],
 	"components": {
+		"securitySchemes": {
+			"digestAuth": {
+				"type": "http",
+				"scheme": "digest",
+				"description": "Digest Authentication"
+			}
+		},
 		"parameters": {
 			"sensor": {
 				"name": "sensor",
@@ -180,6 +179,11 @@
 			}
 		}
 	},
+	"security": [
+    	{
+      		"digestAuth": []
+    	}
+  	],
 	"paths": {
 		"/upload-file": {
 			"post": {
@@ -960,6 +964,7 @@
 			"get": {
 				"description": "Retrieves the versions of all connected devices",
 				"tags": ["Hub"],
+				"security":[],
 				"responses": {
 					"200": {
 						"description": "JSON object of all device software versions",
