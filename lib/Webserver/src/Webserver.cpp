@@ -14,6 +14,12 @@ int Webserver::upload_response_code = 201;
 /// @param Webserver A pointer to an AsyncWebServer object
 Webserver::Webserver(AsyncWebServer* Webserver) {
 	server = Webserver;
+	authMiddleware.setAuthType(AsyncAuthType::AUTH_DIGEST);
+	authMiddleware.setRealm("Fabrica-IO");
+	authMiddleware.setUsername(Configuration::currentConfig.webUsername.c_str());
+	authMiddleware.setPassword(Configuration::currentConfig.webPassword.c_str());
+	authMiddleware.setAuthFailureMessage("Authentication failed");
+	authMiddleware.generateHash();
 }
 
 /// @brief Starts the update server
@@ -28,12 +34,12 @@ bool Webserver::ServerStart() {
 	// Add request handler for index page
 	if (Storage::fileExists("/www/index.html")) {
 		// Serve any page from filesystem
-		server->serveStatic("/", *Storage::getFileSystem(), "/www/").setDefaultFile("index.html").setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+		server->serveStatic("/", *Storage::getFileSystem(), "/www/").setDefaultFile("index.html").addMiddleware(&authMiddleware);
 	} else {
 		// Serve the embedded index page
 		server->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-			request->send_P(HTTP_CODE_OK, "text/html", index_page);
-		}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+			request->send(HTTP_CODE_OK, "text/html", index_page);
+		}).addMiddleware(&authMiddleware);
 	}
 
 	// Handle file uploads
@@ -44,7 +50,7 @@ bool Webserver::ServerStart() {
 		AsyncWebServerResponse *response = request->beginResponse(Webserver::upload_response_code, "text/plain", Webserver::upload_abort ? "Upload failed": "File uploaded");
 		response->addHeader("Connection", "close");
 		request->send(response);
-	}, onUpload_file).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}, onUpload_file).addMiddleware(&authMiddleware);
 
 	// Handle deletion of files
 	server->on("/delete", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -63,12 +69,12 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Get descriptions of available sensors
 	server->on("/sensors/", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		request->send(HTTP_CODE_OK, "application/json", SensorManager::getSensorInfo());
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Get curent configuration of a sensor
 	server->on("/sensors/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -78,7 +84,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Update configuration of a sensor
 	server->on("/sensors/config", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -95,7 +101,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 	// Gets last measurement. Add GET paramater "update" (/sensors/measurement?update) to take a new measurement first
 	server->on("/sensors/measurement", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess) {
@@ -110,7 +116,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 	
 	// Runs a calibration procedure on a sensor
 	server->on("/sensors/calibrate", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -131,12 +137,12 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Get descriptions of available actors
 	server->on("/actors/", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		request->send(HTTP_CODE_OK, "application/json", ActorManager::getActorInfo());
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Get curent configuration of a receiver
 	server->on("/actors/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -146,7 +152,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Update configuration of an actor
 	server->on("/actors/config", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -163,7 +169,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Adds an action to the action queue using the action's name or ID
 	server->on("/actors/add", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -200,7 +206,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	server->on("/actors/add", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
@@ -236,7 +242,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Sends a action to an actor immediately using the action's name or ID, and returns any response
 	server->on("/actors/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -273,7 +279,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Sends an action to a actor immediately using the action'a name or ID, and returns any response
 	server->on("/actors/execute", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -309,12 +315,12 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Get curent global configuration
 	server->on("/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		request->send(HTTP_CODE_OK, "application/json", Configuration::getConfig());
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Update global configuration
 	server->on("/config", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -338,12 +344,12 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Gets the time on the device
 	server->on("/time", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		request->send(HTTP_CODE_OK, "text/plain", String(TimeInterface::getLocalEpoch()));
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Sets the time on the device
 	server->on("/time", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -360,13 +366,13 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Handle request for the amount of free space on the storage device (example of returning JSON data)
 	server->on("/freeSpace", HTTP_GET, [this](AsyncWebServerRequest *request) {	
 		String result = "{ \"space\": " + String(Storage::freeSpace()) + " }";
 		request->send(HTTP_CODE_OK, "application/json", result);
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Handle reset request
 	server->on("/reset", HTTP_PUT, [this](AsyncWebServerRequest *request) {
@@ -376,12 +382,12 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_OK, "text/plain", "OK");
 		}
-		WiFi.mode(WIFI_AP_STA); // Cannot erase if not in STA mode !
+		WiFi.mode(WIFI_AP_STA);// Cannot erase if not in STA mode !
 		WiFi.persistent(true);
 		WiFi.disconnect(true, true);
 		WiFi.persistent(false);
 		Webserver::shouldReboot = true;
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Handle reboot request
 	server->on("/reboot", HTTP_PUT, [this](AsyncWebServerRequest *request) {
@@ -391,7 +397,7 @@ bool Webserver::ServerStart() {
 			request->send(HTTP_CODE_OK, "text/plain", "OK");
 		}
 		Webserver::shouldReboot = true;
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Handle listing files and directories
 	server->on("/list", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -413,7 +419,7 @@ bool Webserver::ServerStart() {
 					list = Storage::listDirs(path, depth);
 				}
 				JsonDocument result;
-				for (int i = 0; i < list.size(); i++) {
+				for (int i = 0;i < list.size();i++) {
 					result["list"][i] = list[i];
 				}
 				String result_string;
@@ -425,7 +431,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Handle downloads
 	server->on("/download", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -439,7 +445,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Allow files to be restored by string input
 	server->on("/restorefile", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -468,7 +474,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 		}
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+	}).addMiddleware(&authMiddleware);
 
 	// Used to fetch current firmware versions
 	server->on("/version", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -483,8 +489,8 @@ bool Webserver::ServerStart() {
 
 	// Update page is special and hard-coded to always be available
 	server->on("/update", HTTP_GET, [this](AsyncWebServerRequest *request) {
-		request->send_P(HTTP_CODE_OK, "text/html", update_page);
-	}).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());
+		request->send(HTTP_CODE_OK, "text/html", update_page);
+	}).addMiddleware(&authMiddleware);
 
 	// Update firmware
 	server->on("/update", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -498,11 +504,11 @@ bool Webserver::ServerStart() {
 		AsyncWebServerResponse *response = request->beginResponse(Webserver::shouldReboot ? HTTP_CODE_ACCEPTED : HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", this->Webserver::shouldReboot ? "OK" : "ERROR");
 		response->addHeader("Connection", "close");
 		request->send(response);
-	}, onUpdate).setAuthentication(Configuration::currentConfig.webUsername.c_str(), Configuration::currentConfig.webPassword.c_str());    
+	}, onUpdate).addMiddleware(&authMiddleware);    
 
 	// 404 handler
 	server->onNotFound([](AsyncWebServerRequest *request) { 
-		request->send(HTTP_CODE_NOT_FOUND); 
+		request->send(HTTP_CODE_NOT_FOUND);
 	});
 
 	server->begin();

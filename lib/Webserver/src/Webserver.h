@@ -48,6 +48,9 @@ class Webserver {
 		/// @brief Used to signal that a reboot is requested or needed
 		static bool shouldReboot;
 
+		/// @brief Authentication middleware
+		AsyncAuthenticationMiddleware authMiddleware;
+
 		static void onUpload_file(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 		static void onUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 		void RebootChecker();
@@ -62,14 +65,17 @@ const char update_page[] = R"(<!DOCTYPE html>
 <body>
 <div id='up-wrap'>
 <h1>Firmware Updater</h1>
+<div class='home-button-container'>
+	<a class='def-button' href="/">Home</a>
+</div>
 <h2>Upload Firmware</h2>
-<h3 id="fw">Current version: </h3>
+<h3 id='fw'>Current version: </h3>
 <div id='up-progress'>
 	<div id='up-bar'></div>
 	<div id='up-percent'>0%</div>
 </div>
 <input type='file' id='up-file' disabled>
-<label for='up-file' id='up-label'>
+<label for='up-file' class='def-button' id='up-label'>
 	Update
 </label>
 <div id='message'></div>
@@ -133,15 +139,16 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 <style>
 #message{font-size:1.3em;font-weight:bolder}
-#up-file,#up-label{width:100%;height:44px;border-radius:4px;margin:10px auto;font-size:1.2em}
-#up-label{background:#f1f1f1;border:0;display:block;line-height:44px}
+#up-file,.def-button{width:100%;height:44px;border-radius:4px;margin:10px auto;font-size:1.2em}
 body{background:#3498db;font-family:sans-serif;font-size:1.3em;color:#777}
 #up-file{padding:0;border:1px solid #ddd;line-height:44px;text-align:left;display:block;cursor:pointer}
 #up-bar,#up-progress{background-color:#f1f1f1;border-radius:10px;position:relative}
 #up-bar{background-color:#3498db;width:0%;height:30px}
 #up-wrap{background:#fff;max-width:36em;min-width:26em;margin:75px auto;padding:30px;border-radius:5px;text-align:center}
 #up-label{background:#3498db;color:#fff;cursor:pointer}
-#up-percent{position:absolute;top:6px;left:0;width:100%;display:flex;align-items:center;justify-content:center;text-shadow:-1px 1px 0 #000,1px 1px 0 #000,1px -1px 0 #000,-1px -1px 0 #000;color:#fff}</style>
+#up-percent{position:absolute;top:6px;left:0;width:100%;display:flex;align-items:center;justify-content:center;text-shadow:-1px 1px 0 #000,1px 1px 0 #000,1px -1px 0 #000,-1px -1px 0 #000;color:#fff}
+.home-button-container{display:flex;flex-direction:row;align-items: left;width: 20%;}
+.def-button{background:#3498db;color:#fff;cursor:pointer;border:0;display:block;line-height:44px;text-decoration:none}</style>
 </body>
 </html>)";
 
