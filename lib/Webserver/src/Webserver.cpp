@@ -16,15 +16,24 @@ Webserver::Webserver(AsyncWebServer* Webserver) {
 	server = Webserver;
 }
 
+
 /// @brief Starts the update server
 bool Webserver::ServerStart() {
 	Logger.println("Starting web server");
-	authMiddleware.setAuthType(AsyncAuthType::AUTH_DIGEST);
+
+	// Set authetication
+	authMiddleware.setAuthType(AsyncAuthType::AUTH_BASIC);
 	authMiddleware.setRealm("Fabrica-IO");
 	authMiddleware.setUsername(Configuration::currentConfig.webUsername.c_str());
 	authMiddleware.setPassword(Configuration::currentConfig.webPassword.c_str());
 	authMiddleware.setAuthFailureMessage("Authentication failed");
 	authMiddleware.generateHash();
+
+	// Set CORS options
+	corsMiddleware.setOrigin("*");
+	corsMiddleware.setMethods("*");
+	corsMiddleware.setHeaders("*");
+	server->addMiddleware(&corsMiddleware);
 
 	// Create root directory if needed
 	if (!Storage::fileExists("/www"))
@@ -38,7 +47,9 @@ bool Webserver::ServerStart() {
 	} else {
 		// Serve the embedded index page
 		server->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-			request->send(HTTP_CODE_OK, "text/html", index_page);
+			AsyncWebServerResponse *response = request->beginResponse(HTTP_CODE_OK, "text/html", index_page);
+			response->addHeader("Access-Control-Expose-Headers", "*");
+			request->send(response);
 		}).addMiddleware(&authMiddleware);
 	}
 
@@ -496,7 +507,6 @@ bool Webserver::ServerStart() {
 	server->on("/update", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		// Let update start
 		delay(50);
-		
 		// Check if should reboot
 		Webserver::shouldReboot = !Update.hasError();
 
@@ -510,7 +520,6 @@ bool Webserver::ServerStart() {
 	server->onNotFound([](AsyncWebServerRequest *request) { 
 		request->send(HTTP_CODE_NOT_FOUND);
 	});
-
 	server->begin();
 	return true;
 }
@@ -606,14 +615,14 @@ void Webserver::onUpdate(AsyncWebServerRequest *request, String filename, size_t
 		// Ensure firmware will fit into flash space
 		if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000))
 		{
-			Update.printError(Serial);
+			Update.printError(Logger);
 		}
 	}
 	if (!Update.hasError())
 	{
 		if (Update.write(data, len) != len)
 		{
-			Update.printError(Serial);
+			Update.printError(Logger);
 		}
 	}
 	if (final)
@@ -624,7 +633,7 @@ void Webserver::onUpdate(AsyncWebServerRequest *request, String filename, size_t
 		}
 		else
 		{
-			Update.printError(Serial);
+			Update.printError(Logger);
 		}
 	}
 }

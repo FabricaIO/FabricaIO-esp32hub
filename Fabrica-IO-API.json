@@ -24,11 +24,11 @@
 	],
 	"servers": [
 		{
-			"url":"http://{device_hub_ip}",
+			"url":"http://{device_hub_address}",
 			"description": "Device hub",
 			"variables": {
-				"device_hub_ip":{
-					"default": "192.168.1.213",
+				"device_hub_address":{
+					"default": "fabricaio.local",
 					"description": "The device hub IP address."
 				}
 			}
@@ -36,10 +36,10 @@
 	],
 	"components": {
 		"securitySchemes": {
-			"digestAuth": {
+			"Auth": {
 				"type": "http",
-				"scheme": "digest",
-				"description": "Digest Authentication"
+				"scheme": "basic",
+				"description": "Authentication"
 			}
 		},
 		"parameters": {
@@ -181,7 +181,7 @@
 	},
 	"security": [
     	{
-      		"digestAuth": []
+      		"Auth": []
     	}
   	],
 	"paths": {
