@@ -57,6 +57,7 @@
 		"cinttypes": "cpp",
 		"iostream": "cpp",
 		"set": "cpp",
-		"dac_common.h": "c"
+		"dac_common.h": "c",
+		"list": "cpp"
 	}
 }

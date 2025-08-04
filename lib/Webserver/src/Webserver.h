@@ -87,10 +87,10 @@ const char update_page[] = R"(<!DOCTYPE html>
 </head>
 <body>
 <div id='up-wrap'>
-<h1>Firmware Updater</h1>
 <div class='home-button-container'>
 	<a class='def-button' href="/">Home</a>
 </div>
+<h1>Firmware Updater</h1>
 <h2>Upload Firmware</h2>
 <h3 id='fw'>Current version: </h3>
 <div id='up-progress'>

@@ -59,6 +59,7 @@ bool Storage::begin(int sdi, int sdo, int sck, int cs, uint32_t frequency, SPICl
 	return success;
 }
 
+#ifdef SOC_SDMMC_HOST_SUPPORTED
 /// @brief Mount and initiate the storage for an SD card using SDIO (e.g. https://www.adafruit.com/product/4682). Will format if necessary
 /// @param clk The clock pin number
 /// @param cmd The cmd pin number
@@ -103,6 +104,7 @@ bool Storage::begin(int clk, int cmd, int d0, int d1, int d2, int d3, uint32_t f
 	}
 	return success;
 }
+#endif
 
 /// @brief Gets the currently used file system
 /// @return A pointer to storage media/file system being used
@@ -282,9 +284,11 @@ size_t Storage::freeSpace() {
 		case Storage::Media::SD_SPI:
 			return SD.totalBytes() - SD.usedBytes();
 			break;
+		#ifdef SOC_SDMMC_HOST_SUPPORTED
 		case Storage::Media::SD_MMC:
 			return SD_MMC.totalBytes() - SD_MMC.usedBytes();
 			break;
+		#endif
 	}
 	return 0;
 }
