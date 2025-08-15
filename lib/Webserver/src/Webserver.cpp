@@ -3,6 +3,7 @@
 /// @brief Holds current firmware version
 extern const String FW_VERSION;
 
+/// @brief true when start up succeeds
 extern bool POSTSuccess;
 
 // Initialize static variables

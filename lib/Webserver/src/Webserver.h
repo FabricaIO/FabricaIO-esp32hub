@@ -53,8 +53,8 @@ class Webserver {
 		// 		}
 		// 	};
 				
-		// /// @brief CORS middleware
-		// AsyncCorsMiddleware corsMiddleware;
+		// /// @brief CORS middleware fix
+		// CORSAuthFixMiddleware corsMiddlewareFix;
 
 		/// @brief Pointer to the Webserver object
 		AsyncWebServer* server;
@@ -68,7 +68,7 @@ class Webserver {
 		/// @brief Used to signal that a reboot is requested or needed
 		static bool shouldReboot;
 
-		/// @brief Authentication middleware for digest auth
+		/// @brief Authentication middleware for basic auth
 		AsyncAuthenticationMiddleware authMiddleware;
 		
 		/// @brief CORS middleware
