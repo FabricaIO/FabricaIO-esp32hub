@@ -3,19 +3,14 @@
 /// @brief Holds current firmware version
 extern const String FW_VERSION;
 
+/// @brief true when start up succeeds
 extern bool POSTSuccess;
-
-// Initialize static variables
-bool Webserver::upload_abort = false;
-bool Webserver::shouldReboot = false;
-int Webserver::upload_response_code = 201;
 
 /// @brief Creates a Webserver object
 /// @param Webserver A pointer to an AsyncWebServer object
 Webserver::Webserver(AsyncWebServer* Webserver) {
 	server = Webserver;
 }
-
 
 /// @brief Starts the update server
 bool Webserver::ServerStart() {

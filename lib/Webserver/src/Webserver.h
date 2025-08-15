@@ -53,22 +53,22 @@ class Webserver {
 		// 		}
 		// 	};
 				
-		// /// @brief CORS middleware
-		// AsyncCorsMiddleware corsMiddleware;
+		// /// @brief CORS middleware fix
+		// CORSAuthFixMiddleware corsMiddlewareFix;
 
 		/// @brief Pointer to the Webserver object
 		AsyncWebServer* server;
 
 		/// @brief Used to indicate an upload had to be aborted
-		static bool upload_abort;
+		static bool inline upload_abort = false;
 
 		/// @brief Used to indicate the status code of the last upload
-		static int upload_response_code;
+		static int inline upload_response_code = 201;
 
 		/// @brief Used to signal that a reboot is requested or needed
-		static bool shouldReboot;
+		static bool inline shouldReboot = false;
 
-		/// @brief Authentication middleware for digest auth
+		/// @brief Authentication middleware for basic auth
 		AsyncAuthenticationMiddleware authMiddleware;
 		
 		/// @brief CORS middleware

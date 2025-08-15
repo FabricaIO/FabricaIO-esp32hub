@@ -1,9 +1,5 @@
 #include "Storage.h"
 
-// Initialize static variables
-Storage::Media Storage::storageMedia = Storage::Media::Not_Ready;
-FS* Storage::storageSystem = &LittleFS;
-
 /// @brief Mount LittleFS and format if necessary
 /// @return True on successful mount of LittleFS
 bool Storage::begin() {

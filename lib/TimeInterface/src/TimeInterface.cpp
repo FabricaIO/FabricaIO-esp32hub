@@ -1,8 +1,5 @@
 #include "TimeInterface.h"
 
-// Initialize static variables
-ESP32Time TimeInterface::rtc;
-
 /// @brief Get the current formatted time
 /// @param format The CPP formatted time (https://cplusplus.com/reference/ctime/strftime/)
 /// @return The formatted time as a string

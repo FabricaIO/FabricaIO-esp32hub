@@ -46,8 +46,8 @@ class Storage {
 		
 	private:
 		/// @brief The storage media type being used
-		static Media storageMedia;
+		static inline Media storageMedia = Storage::Media::Not_Ready;
 
 		/// @brief The file system being used
-		static FS* storageSystem;	
+		static inline FS* storageSystem = &LittleFS;
 };

@@ -24,6 +24,5 @@ class TimeInterface {
 
 	private:
 		/// @brief Time object to use
-		static ESP32Time rtc;
-
+		static inline ESP32Time rtc;
 };
