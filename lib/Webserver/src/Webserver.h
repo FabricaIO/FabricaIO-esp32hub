@@ -36,26 +36,6 @@ class Webserver {
 		static void RebootCheckerTaskWrapper(void* arg);
 		
 	private:
-
-		//  Not used right now as digest auth is a pain, may revive in future
-		//  /// @brief This middleware is needed to expose www-authenticate and related headers 
-		// class CORSAuthFixMiddleware : public AsyncMiddleware {
-		// 	public:
-		// 		void run(AsyncWebServerRequest *request, ArMiddlewareNext next) override {
-		// 			if (request->hasHeader(asyncsrv::T_CORS_O)) {
-		// 				// check if this is a preflight request => handle it and return
-		// 				next();					
-		// 				AsyncWebServerResponse *response = request->getResponse();
-		// 				if (response) {
-		// 					response->addHeader("Access-Control-Expose-Headers", "*");
-		// 				}
-		// 			}
-		// 		}
-		// 	};
-				
-		// /// @brief CORS middleware fix
-		// CORSAuthFixMiddleware corsMiddlewareFix;
-
 		/// @brief Pointer to the Webserver object
 		AsyncWebServer* server;
 
@@ -68,11 +48,31 @@ class Webserver {
 		/// @brief Used to signal that a reboot is requested or needed
 		static bool shouldReboot;
 
-		/// @brief Authentication middleware for basic auth
-		AsyncAuthenticationMiddleware authMiddleware;
+		/// @brief Authentication middleware for auth
+		static AsyncAuthenticationMiddleware authMiddleware;
 		
 		/// @brief CORS middleware
 		AsyncCorsMiddleware corsMiddleware;
+
+		/// @brief This middleware is needed to expose www-authenticate and related headers 
+		class CORSAuthFixMiddleware : public AsyncMiddleware {
+			public:
+				void run(AsyncWebServerRequest *request, ArMiddlewareNext next) override {
+					if (request->hasHeader(asyncsrv::T_CORS_O)) {
+						// check if this is a preflight request => handle it and return
+						next();					
+						AsyncWebServerResponse *response = request->getResponse();
+						if (response) {
+							response->addHeader("Access-Control-Expose-Headers", "*");
+						}
+					} else {
+						next();
+					}
+				}
+			};
+				
+		/// @brief CORS middleware fix
+		CORSAuthFixMiddleware corsMiddlewareFix;
 
 		static void onUpload_file(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 		static void onUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);

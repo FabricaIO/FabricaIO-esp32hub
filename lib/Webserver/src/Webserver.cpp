@@ -10,6 +10,7 @@ extern bool POSTSuccess;
 bool Webserver::upload_abort = false;
 bool Webserver::shouldReboot = false;
 int Webserver::upload_response_code = 201;
+AsyncAuthenticationMiddleware Webserver::authMiddleware;
 
 /// @brief Creates a Webserver object
 /// @param Webserver A pointer to an AsyncWebServer object
@@ -17,25 +18,32 @@ Webserver::Webserver(AsyncWebServer* Webserver) {
 	server = Webserver;
 }
 
-
 /// @brief Starts the update server
 bool Webserver::ServerStart() {
 	Logger.println("Starting web server");
 
 	// Set authetication
-	authMiddleware.setAuthType(AsyncAuthType::AUTH_BASIC);
 	authMiddleware.setRealm("Fabrica-IO");
 	authMiddleware.setUsername(Configuration::currentConfig.webUsername.c_str());
 	authMiddleware.setPassword(Configuration::currentConfig.webPassword.c_str());
 	authMiddleware.setAuthFailureMessage("Authentication failed");
+	//Set auth type
+	if(Configuration::currentConfig.useDigestAuth) {
+		Logger.println("Using digest auth");
+		authMiddleware.setAuthType(AsyncAuthType::AUTH_DIGEST);
+		server->addMiddlewares({&corsMiddlewareFix, &corsMiddleware});
+	} else {
+		Logger.println("Using basic auth");
+		authMiddleware.setAuthType(AsyncAuthType::AUTH_BASIC);
+		server->addMiddleware(&corsMiddleware);
+	}
 	authMiddleware.generateHash();
 
 	// Set CORS options
 	corsMiddleware.setOrigin("*");
 	corsMiddleware.setMethods("*");
 	corsMiddleware.setHeaders("*");
-	server->addMiddleware(&corsMiddleware);
-
+	
 	// Create root directory if needed
 	if (!Storage::fileExists("/www"))
 		if (!Storage::createDir("/www"))
@@ -49,7 +57,6 @@ bool Webserver::ServerStart() {
 		// Serve the embedded index page
 		server->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
 			AsyncWebServerResponse *response = request->beginResponse(HTTP_CODE_OK, "text/html", index_page);
-			response->addHeader("Access-Control-Expose-Headers", "*");
 			request->send(response);
 		}).addMiddleware(&authMiddleware);
 	}
@@ -515,7 +522,7 @@ bool Webserver::ServerStart() {
 		AsyncWebServerResponse *response = request->beginResponse(Webserver::shouldReboot ? HTTP_CODE_ACCEPTED : HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", this->Webserver::shouldReboot ? "OK" : "ERROR");
 		response->addHeader("Connection", "close");
 		request->send(response);
-	}, onUpdate).addMiddleware(&authMiddleware);    
+	}, onUpdate).addMiddleware(&authMiddleware);
 
 	// 404 handler
 	server->onNotFound([](AsyncWebServerRequest *request) { 
@@ -563,6 +570,10 @@ void Webserver::RebootChecker() {
 /// @param len
 /// @param final
 void Webserver::onUpload_file(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+	if(!Webserver::authMiddleware.allowed(request)) {
+		request->send(HTTP_CODE_UNAUTHORIZED, "text/plain", "Authentication failed");
+		return;
+	}
 	if (!index) {
 		if (!request->hasHeader("FILE_UPLOAD_PATH")) {
 			final = true;
@@ -606,6 +617,10 @@ void Webserver::onUpload_file(AsyncWebServerRequest *request, String filename, s
 /// @param len
 /// @param final
 void Webserver::onUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+	if(!Webserver::authMiddleware.allowed(request)) {
+		request->send(HTTP_CODE_UNAUTHORIZED, "text/plain", "Authentication failed");
+		return;
+	}
 	if (!index)
 	{
 		Logger.printf("Update Start: %s\n", filename.c_str());

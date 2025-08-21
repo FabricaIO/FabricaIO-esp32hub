@@ -59,11 +59,15 @@ class Configuration {
 			/// @brief SSID for configuration interface
 			String configSSID = "ESP32Hub_Config";
 
+
 			/// @brief Password for configuration interface
 			String configPW = "ESP32Hub";
 
 			/// @brief Hostname used by device
 			String hostname = "FabricaIO";
+
+			/// @brief Use HTTP digest auth instead of HTTP basic auth
+			bool useDigestAuth = false;
 			
 			/// @brief Enable MDNS using hostname
 			bool mdns = true;
