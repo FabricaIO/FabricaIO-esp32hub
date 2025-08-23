@@ -62,8 +62,8 @@ bool Configuration::updateConfig(String config) {
 	currentConfig.configSSID = doc["configSSID"].as<String>();
 	currentConfig.configPW = doc["configPW"].as<String>();
 	currentConfig.hostname = doc["hostname"].as<String>();
-	currentConfig.useDigestAuth = doc["useDigestAuth"].as<bool>();
 	currentConfig.mdns = doc["mdns"].as<bool>();
+	currentConfig.useDigestAuth = doc["useDigestAuth"].as<bool>();
 	if (currentConfig.WiFiClient) {
 		// Set local time via NTP
 		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
@@ -116,8 +116,8 @@ String Configuration::configToJSON() {
 	doc["configSSID"] = currentConfig.configSSID;
 	doc["configPW"] = currentConfig.configPW;
 	doc["hostname"] = currentConfig.hostname;
-	doc["useDigestAuth"] = currentConfig.useDigestAuth;
 	doc["mdns"] = currentConfig.mdns;
+	doc["useDigestAuth"] = currentConfig.useDigestAuth;
 
 	// Create string to hold output
 	String output;

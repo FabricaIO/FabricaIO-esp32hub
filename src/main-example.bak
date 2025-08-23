@@ -196,7 +196,6 @@ void loop() {
 			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Running);
 			PeriodicTasks::callTasks(current_mills - previous_mills_task);
 			previous_mills_task = current_mills;
-			delay(100);
 			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 		}
 	}

@@ -65,12 +65,12 @@ class Configuration {
 
 			/// @brief Hostname used by device
 			String hostname = "FabricaIO";
-
-			/// @brief Use HTTP digest auth instead of HTTP basic auth
-			bool useDigestAuth = false;
 			
 			/// @brief Enable MDNS using hostname
 			bool mdns = true;
+
+			/// @brief Use HTTP digest auth instead of HTTP basic auth
+			bool useDigestAuth = false;
 		} config;
 
 		static String configToJSON();
