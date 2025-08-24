@@ -52,8 +52,8 @@
 				},
 				"example": 1
 			},
-			"actor": {
-				"name": "actor",
+			"actorID": {
+				"name": "actorID",
 				"in": "query",
 				"description": "The positionID of the actor.  Either this or \"actorName\" is required",
 				"schema": {
@@ -64,25 +64,25 @@
 			"actorName": {
 				"name": "actorName",
 				"in": "query",
-				"description": "The name of the actor.  Either this or \"actor\" is required",
+				"description": "The name of the actor.  Either this or \"actorID\" is required",
 				"schema": {
 					"type": "string"
 				},
 				"example": "AutoPump"
 			},
 			"action_id": {
-				"name": "id",
+				"name": "actionID",
 				"in": "query",
-				"description": "The ID of the action to perform. Either this or \"name\" is required",
+				"description": "The ID of the action to perform. Either this or \"actionName\" is required",
 				"schema": {
 					"type": "integer"
 				},
 				"example": 1
 			},
 			"action_name": {
-				"name": "name",
+				"name": "actionName",
 				"in": "query",
-				"description": "The name of the action to perform. Either this or \"id\" is required",
+				"description": "The name of the action to perform. Either this or \"actionID\" is required",
 				"schema": {
 					"type": "string"
 				},
@@ -150,7 +150,7 @@
 			"action":{
 				"type": "object",
 				"properties": {
-					"actor": {
+					"actorID": {
 						"type": "integer",
 						"description": "The positionID of the actor. Either this or \"actorName\" are required",
 						"example": 1
@@ -160,14 +160,14 @@
 						"description": "The name of the actor. Either this or \"actor\" are required",
 						"example": "AutoPump"
 					},
-					"id":	{
+					"actionID":	{
 						"type": "integer",
-						"description": "The ID of the action to perform. Either this or \"name\" is required",
+						"description": "The ID of the action to perform. Either this or \"actionName\" is required",
 						"example": 1
 					},
-					"name": {
+					"actionName": {
 						"type": "string",
-						"description": "The name of the action to perform. Either this or \"id\" is required",
+						"description": "The name of the action to perform. Either this or \"actionID\" is required",
 						"example": "Dose"
 					},
 					"payload": {
@@ -560,7 +560,7 @@
 				"tags": ["Actors"],
 				"parameters": [ 
 					{
-						"$ref": "#/components/parameters/actor"
+						"$ref": "#/components/parameters/actorID"
 					}
 				],
 				"responses": {
@@ -633,7 +633,7 @@
 				"description": "Adds an action to the queue to be executed in order",
 				"tags": ["Actors"],
 				"parameters": [					{
-						"$ref": "#/components/parameters/actor"
+						"$ref": "#/components/parameters/actorID"
 					},
 					{
 						"$ref": "#/components/parameters/actorName"
@@ -662,7 +662,7 @@
 				"description": "Executes an action immediately and returns any result. Warning: actions taking longer than 4 seconds to complete can trigger the watchdog timer and cause a reboot. Use \"add\" to queue actions instead.",
 				"tags" : ["Actors"],
 				"parameters": [					{
-						"$ref": "#/components/parameters/actor"
+						"$ref": "#/components/parameters/actorID"
 					},
 					{
 						"$ref": "#/components/parameters/actorName"

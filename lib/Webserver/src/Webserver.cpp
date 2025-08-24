@@ -163,7 +163,7 @@ bool Webserver::ServerStart() {
 		request->send(HTTP_CODE_OK, "application/json", ActorManager::getActorInfo());
 	}).addMiddleware(&authMiddleware);
 
-	// Get curent configuration of a receiver
+	// Get curent configuration of an actor
 	server->on("/actors/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (request->hasParam("actor")) {
 			int actorPosID = request->getParam("actor")->value().toInt();
@@ -193,7 +193,7 @@ bool Webserver::ServerStart() {
 	// Adds an action to the action queue using the action's name or ID
 	server->on("/actors/add", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess) {
-			if ((request->hasParam("actor", true) || request->hasParam("actorName", true)) && ((request->hasParam("id", true) || request->hasParam("name", true)))) {
+			if ((request->hasParam("actorID", true) || request->hasParam("actorName", true)) && ((request->hasParam("actionID", true) || request->hasParam("actionName", true)))) {
 				// Parse data payload
 				String payload = "";
 				if (request->hasParam("payload", true)) {
@@ -201,17 +201,17 @@ bool Webserver::ServerStart() {
 				}
 				// Attempt to add action to queue
 				bool success = false;
-				if (request->hasParam("id", true)) {
-					if (request->hasParam("actor", true)) {
-						success = ActorManager::addActionToQueue(request->getParam("actor", true)->value().toInt(), request->getParam("id", true)->value().toInt(), payload);
+				if (request->hasParam("actionID", true)) {
+					if (request->hasParam("actorID", true)) {
+						success = ActorManager::addActionToQueue(request->getParam("actorID", true)->value().toInt(), request->getParam("actionID", true)->value().toInt(), payload);
 					} else {
-						success = ActorManager::addActionToQueue(request->getParam("actorName", true)->value(), request->getParam("id", true)->value().toInt(), payload);
+						success = ActorManager::addActionToQueue(request->getParam("actorName", true)->value(), request->getParam("actionID", true)->value().toInt(), payload);
 					}
 				} else {
-					if (request->hasParam("actor", true)) {
-						success = ActorManager::addActionToQueue(request->getParam("actor", true)->value().toInt(), request->getParam("name", true)->value(), payload);
+					if (request->hasParam("actorID", true)) {
+						success = ActorManager::addActionToQueue(request->getParam("actorID", true)->value().toInt(), request->getParam("actionName", true)->value(), payload);
 					} else {
-						success = ActorManager::addActionToQueue(request->getParam("actorName", true)->value(), request->getParam("name", true)->value(), payload);
+						success = ActorManager::addActionToQueue(request->getParam("actorName", true)->value(), request->getParam("actionName", true)->value(), payload);
 					}
 				}
 				if (!success) {
@@ -230,7 +230,7 @@ bool Webserver::ServerStart() {
 	// Adds an action to the action queue using the action's name or ID
 	server->on("/actors/add", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
-			if ((request->hasParam("actor") || request->hasParam("actorName")) && ((request->hasParam("id") || request->hasParam("name")))) {
+			if ((request->hasParam("actorID") || request->hasParam("actorName")) && ((request->hasParam("actionID") || request->hasParam("actionName")))) {
 				// Parse data payload
 				String payload = "";
 				if (request->hasParam("payload")) {
@@ -238,17 +238,17 @@ bool Webserver::ServerStart() {
 				}
 				// Attempt to add action to queue
 				bool success = false;
-				if (request->hasParam("id")) {
-					if (request->hasParam("actor")) {
-						success = ActorManager::addActionToQueue(request->getParam("actor")->value().toInt(), request->getParam("id")->value().toInt(), payload);
+				if (request->hasParam("actionID")) {
+					if (request->hasParam("actorID")) {
+						success = ActorManager::addActionToQueue(request->getParam("actorID")->value().toInt(), request->getParam("actionID")->value().toInt(), payload);
 					} else {
-						success = ActorManager::addActionToQueue(request->getParam("actorName")->value(), request->getParam("id")->value().toInt(), payload);
+						success = ActorManager::addActionToQueue(request->getParam("actorName")->value(), request->getParam("actionID")->value().toInt(), payload);
 					}
 				} else {
-					if (request->hasParam("actor")) {
-						success = ActorManager::addActionToQueue(request->getParam("actor")->value().toInt(), request->getParam("name")->value(), payload);
+					if (request->hasParam("actorID")) {
+						success = ActorManager::addActionToQueue(request->getParam("actorID")->value().toInt(), request->getParam("actionName")->value(), payload);
 					} else {
-						success = ActorManager::addActionToQueue(request->getParam("actorName")->value(), request->getParam("name")->value(), payload);
+						success = ActorManager::addActionToQueue(request->getParam("actorName")->value(), request->getParam("actionName")->value(), payload);
 					}
 				}
 				if (!success) {
@@ -267,24 +267,24 @@ bool Webserver::ServerStart() {
 	// Sends an action to an actor immediately using the action's name or ID, and returns any response
 	server->on("/actors/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
-			if ((request->hasParam("actor") || request->hasParam("actorName")) && ((request->hasParam("id") || request->hasParam("name")))) {
+			if ((request->hasParam("actorID") || request->hasParam("actorName")) && ((request->hasParam("actionID") || request->hasParam("actionName")))) {
 				// Parse data payload
 				String payload = "";
 				if (request->hasParam("payload")) {
 					payload = request->getParam("payload")->value();
 				}
 				std::tuple<bool, String> result;
-				if (request->hasParam("id")) {
-					if (request->hasParam("actor")) {
-						result = ActorManager::processActionImmediately(request->getParam("actor")->value().toInt(), request->getParam("id")->value().toInt(), payload);
+				if (request->hasParam("actionID")) {
+					if (request->hasParam("actorID")) {
+						result = ActorManager::processActionImmediately(request->getParam("actorID")->value().toInt(), request->getParam("actionID")->value().toInt(), payload);
 					} else {
-						result = ActorManager::processActionImmediately(request->getParam("actorName")->value(), request->getParam("id")->value().toInt(), payload);
+						result = ActorManager::processActionImmediately(request->getParam("actorName")->value(), request->getParam("actionID")->value().toInt(), payload);
 					}
 				} else {
-					if (request->hasParam("actor")) {
-						result = ActorManager::processActionImmediately(request->getParam("actor")->value().toInt(), request->getParam("name")->value(), payload);
+					if (request->hasParam("actorID")) {
+						result = ActorManager::processActionImmediately(request->getParam("actorID")->value().toInt(), request->getParam("actionName")->value(), payload);
 					} else {
-						result = ActorManager::processActionImmediately(request->getParam("actorName")->value(), request->getParam("name")->value(), payload);
+						result = ActorManager::processActionImmediately(request->getParam("actorName")->value(), request->getParam("actionName")->value(), payload);
 					}
 				}
 				String mime = "application/json";
@@ -304,23 +304,21 @@ bool Webserver::ServerStart() {
 	// Sends an action to a actor immediately using the action'a name or ID, and returns any response
 	server->on("/actors/execute", HTTP_POST, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess) {	
-			if ((request->hasParam("actor", true) || request->hasParam("actorName", true)) && ((request->hasParam("id", true) || request->hasParam("name", true)))) {
+			if ((request->hasParam("actorID", true) || request->hasParam("actorName", true)) && ((request->hasParam("actionID", true) || request->hasParam("actionName", true)))) {
 				// Parse data payload
-				bool id = true;
-				int actorPosID = request->getParam("actor", true)->value().toInt();
 				String payload = "";
 				std::tuple<bool, String> result;
-				if (request->hasParam("id")) {
-					if (request->hasParam("actor", true)) {
-						result = ActorManager::processActionImmediately(request->getParam("actor", true)->value().toInt(), request->getParam("id", true)->value().toInt(), payload);
+				if (request->hasParam("actionID")) {
+					if (request->hasParam("actorID", true)) {
+						result = ActorManager::processActionImmediately(request->getParam("actorID", true)->value().toInt(), request->getParam("id", true)->value().toInt(), payload);
 					} else {
 						result = ActorManager::processActionImmediately(request->getParam("actorName", true)->value(), request->getParam("id", true)->value().toInt(), payload);
 					}
 				} else {
 					if (request->hasParam("actor", true)) {
-						result = ActorManager::processActionImmediately(request->getParam("actor", true)->value().toInt(), request->getParam("name", true)->value(), payload);
+						result = ActorManager::processActionImmediately(request->getParam("actorID", true)->value().toInt(), request->getParam("actionName", true)->value(), payload);
 					} else {
-						result = ActorManager::processActionImmediately(request->getParam("actorName", true)->value(), request->getParam("name", true)->value(), payload);
+						result = ActorManager::processActionImmediately(request->getParam("actorName", true)->value(), request->getParam("actionName", true)->value(), payload);
 					}
 				}
 				String mime = "application/json";
