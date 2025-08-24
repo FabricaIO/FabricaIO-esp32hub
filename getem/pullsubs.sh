@@ -18,6 +18,7 @@ declare -a subs=(
     "actor-NeoPixelsController"
     "actor-PeriodicActionTrigger"
     "actor-SensorActionTrigger"
+    "actor-SensorChangeTrigger"
     "actor-ResetButton"
     "actor-TimerSwitch"
     "actor-WebhookAction"

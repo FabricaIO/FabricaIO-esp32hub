@@ -199,5 +199,5 @@ void loop() {
 			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 		}
 	}
-	delay(100);
+	delay(1); // Token delay to allow thread to yield (unnecessary?)
 }

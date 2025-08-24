@@ -321,8 +321,7 @@ void ActorManager::actionProcessor(void* arg) {
 					Logger.println("Exception in processing action payload from queue");
 				}
 			}
-			delay(10);
 		}
-		delay(100);
+		delay(1); // Token delay to allow thread to yield (unnecessary?)
 	}
 }

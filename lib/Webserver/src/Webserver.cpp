@@ -215,7 +215,7 @@ bool Webserver::ServerStart() {
 					}
 				}
 				if (!success) {
-					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not add signal to queue");
+					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not add action to queue");
 				} else {
 					request->send(HTTP_CODE_OK, "text/plain", "OK");
 				}
@@ -227,6 +227,7 @@ bool Webserver::ServerStart() {
 		}
 	}).addMiddleware(&authMiddleware);
 
+	// Adds an action to the action queue using the action's name or ID
 	server->on("/actors/add", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
 			if ((request->hasParam("actor") || request->hasParam("actorName")) && ((request->hasParam("id") || request->hasParam("name")))) {
@@ -251,7 +252,7 @@ bool Webserver::ServerStart() {
 					}
 				}
 				if (!success) {
-					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not add signal to queue");
+					request->send(HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", "Could not add action to queue");
 				} else {
 					request->send(HTTP_CODE_OK, "text/plain", "OK");
 				}
@@ -263,7 +264,7 @@ bool Webserver::ServerStart() {
 		}
 	}).addMiddleware(&authMiddleware);
 
-	// Sends a action to an actor immediately using the action's name or ID, and returns any response
+	// Sends an action to an actor immediately using the action's name or ID, and returns any response
 	server->on("/actors/execute", HTTP_GET, [this](AsyncWebServerRequest *request) {
 		if (POSTSuccess){
 			if ((request->hasParam("actor") || request->hasParam("actorName")) && ((request->hasParam("id") || request->hasParam("name")))) {
@@ -290,7 +291,7 @@ bool Webserver::ServerStart() {
 				if (!std::get<0>(result)) {
 					mime = "text/plain";
 				}
-				// Execute signal and return response
+				// Execute action and return response
 				request->send(HTTP_CODE_OK, mime, std::get<1>(result));
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
@@ -326,7 +327,7 @@ bool Webserver::ServerStart() {
 				if (!std::get<0>(result)) {
 					mime = "text/plain";
 				}
-				// Execute signal and return response
+				// Execute action and return response
 				request->send(HTTP_CODE_OK, mime, std::get<1>(result));
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
