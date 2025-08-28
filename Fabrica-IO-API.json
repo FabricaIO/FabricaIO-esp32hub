@@ -55,7 +55,7 @@
 			"actorID": {
 				"name": "actorID",
 				"in": "query",
-				"description": "The positionID of the actor.  Either this or \"actorName\" is required",
+				"description": "The positionID of the actor. Either this or \"actorName\" is required",
 				"schema": {
 					"type": "integer"
 				},
@@ -64,7 +64,7 @@
 			"actorName": {
 				"name": "actorName",
 				"in": "query",
-				"description": "The name of the actor.  Either this or \"actorID\" is required",
+				"description": "The name of the actor. Either this or \"actorID\" is required",
 				"schema": {
 					"type": "string"
 				},
@@ -152,12 +152,12 @@
 				"properties": {
 					"actorID": {
 						"type": "integer",
-						"description": "The positionID of the actor. Either this or \"actorName\" are required",
+						"description": "The positionID of the actor. Either this or \"actorName\" is required",
 						"example": 1
 					},
 					"actorName": {
 						"type": "string",
-						"description": "The name of the actor. Either this or \"actor\" are required",
+						"description": "The name of the actor. Either this or \"actorID\" is required",
 						"example": "AutoPump"
 					},
 					"actionID":	{
@@ -558,10 +558,16 @@
 			"get": {				
 				"description": "Retrieves the current configuration for a given actor",
 				"tags": ["Actors"],
-				"parameters": [ 
-					{
-						"$ref": "#/components/parameters/actorID"
-					}
+				"parameters": [ 		
+					{			
+						"name": "actor",
+						"in": "query",
+						"description": "The positionID of the actor.",
+						"schema": {
+							"type": "integer"
+						},
+						"example": 1
+					}			
 				],
 				"responses": {
 					"200":{
