@@ -24,7 +24,7 @@ class Actor : public DeviceConfig {
 			/// @brief The name of this device
 			String name;
 			
-			/// @brief Contains of map of actions this device can perform and their ID numbers. Actor names must contain only alphanumeric and underscores, and contain at least one letter
+			/// @brief Contains a map of actions this device can perform and their ID numbers. Actor names must contain only alphanumeric and underscores, and contain at least one letter
 			std::map<String, int> actions;
 
 			/// @brief The version of the actor code
