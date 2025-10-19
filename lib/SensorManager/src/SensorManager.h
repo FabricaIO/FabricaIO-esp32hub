@@ -42,7 +42,9 @@ class SensorManager {
 		static String getSensorInfo();
 		static std::vector<Sensor*> getSensors();
 		static String getSensorConfig(int sensorPosID);
+		static String getSensorConfig(String sensorName);
 		static bool setSensorConfig(int sensorPosID, String config);
 		static String getSensorVersions();
 		static std::tuple<Sensor::calibration_response, String> calibrateSensor(int sensorPosID, int step);
+		static int sensorNameToID(String name);
 };

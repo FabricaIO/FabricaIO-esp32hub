@@ -25,9 +25,6 @@ class ActorManager {
 		/// @brief Holds all payloads delivered with a action
 		static QueueHandle_t payloads;
 
-		static int actorNameToID(String name);
-		static int actionNameToID(String name, int actorPosID);
-
 	public:
 		static bool addActor(Actor* actor);
 		static bool beginActors();
@@ -42,7 +39,10 @@ class ActorManager {
 		static String getActorInfo();
 		static std::vector<Actor*> getActors();
 		static String getActorConfig(int actorPosID);
+		static String getActorConfig(String actorName);
 		static bool setActorConfig(int actorPosID, String config);
 		static String getActorVersions();
 		static void actionProcessor(void* arg);
+		static int actorNameToID(String name);
+		static int actionNameToID(String name, int actorPosID);
 };

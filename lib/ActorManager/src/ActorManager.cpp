@@ -152,15 +152,22 @@ std::vector<Actor*> ActorManager::getActors() {
 }
 
 
-/// @brief Gets any available config settings for a actor receive device
+/// @brief Gets any available config settings for an actor device
 /// @param actorPosID The position ID of the actor receive
-/// @return A JSON string of configurable settings
+/// @return A JSON string of configurable settings or an empty string on failure
 String ActorManager::getActorConfig(int actorPosID) {
 	if (actorPosID >= 0 && actorPosID < actors.size()) {
 		return actors[actorPosID]->getConfig();
 	} else {
-		return "{}";
+		return "";
 	}
+}
+
+/// @brief Gets any available config settings for an actor device
+/// @param actorName The name of the actor
+/// @return A JSON string of configurable settings or an empty string on failure
+String ActorManager::getActorConfig(String actorName) {
+	return getActorConfig(actorNameToID(actorName));
 }
 
 /// @brief Gets any available config settings for a actor receiver device
@@ -268,7 +275,7 @@ std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, 
 }
 
 /// @brief Turns the name of an actor into its position ID
-/// @param name Then name of the actor
+/// @param name The name of the actor
 /// @return The positionID of the actor or -1 on failure
 int ActorManager::actorNameToID(String name) {
 	int actorPosID;
@@ -286,8 +293,8 @@ int ActorManager::actorNameToID(String name) {
 	return actorPosID;
 }
 
-/// @brief Turns the name of an action into its  ID
-/// @param name Then name of the action
+/// @brief Turns the name of an action into its ID
+/// @param name The name of the action
 /// @param actorPosID The ID of the of actor the action belongs to
 /// @return The ID of the action or -1 on failure
 int ActorManager::actionNameToID(String name, int actorPosID) {

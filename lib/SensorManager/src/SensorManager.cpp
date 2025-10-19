@@ -105,13 +105,20 @@ std::vector<Sensor*> SensorManager::getSensors() {
 
 /// @brief Gets any available config settings for a sensor device
 /// @param sensorPosID The position ID of the sensor
-/// @return A JSON string of configurable settings
+/// @return A JSON string of configurable settings or an empty string on failure
 String SensorManager::getSensorConfig(int sensorPosID) {
 	if (sensorPosID >= 0 && sensorPosID < sensors.size()) {
 		return sensors[sensorPosID]->getConfig();
 	} else {
-		return "{}";
+		return "";
 	}
+}
+
+/// @brief Gets any available config settings for a sensor device
+/// @param sensorPosID The position ID of the sensor
+/// @return A JSON string of configurable settings or an empty string on failure
+String SensorManager::getSensorConfig(String sensorName) {
+	return getSensorConfig(sensorNameToID(sensorName));
 }
 
 /// @brief Gets any available config settings for a sensor device
@@ -154,4 +161,23 @@ std::tuple<Sensor::calibration_response, String> SensorManager::calibrateSensor(
 		return { Sensor::calibration_response::error, "sensorPosID out of range" };
 	}
 	return sensors[sensorPosID]->calibrate(step);
+}
+
+/// @brief Turns the name of a sensor into its position ID
+/// @param name The name of the sensor
+/// @return The positionID of the sensor or -1 on failure
+int SensorManager::sensorNameToID(String name) {
+	int sensorPosID;
+	try {
+		auto index = std::find_if(sensors.begin(), sensors.end(), [name](Sensor* a) {return a->Description.name == name;});
+		if (index == sensors.end()) {
+			Logger.println("Actor not found");
+			return -1;
+		}
+		sensorPosID = index - sensors.begin();
+	} catch (const std::exception& e) {
+		Logger.println("Sensor not found");
+		return -1;
+	}
+	return sensorPosID;
 }
