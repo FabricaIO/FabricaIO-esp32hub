@@ -70,7 +70,7 @@ void setup() {
 	}
 	// Let any serial monitors connect
 	delay(1000);
-	Logger.print("Booting ESP32 sensor hub V");
+	Logger.print("Booting ESP32 device hub V");
 	Logger.println(FW_VERSION);
 	Logger.println();
 	Logger.println("Designed and created by Sam Groveman (C) 2024");

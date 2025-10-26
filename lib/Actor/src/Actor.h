@@ -10,7 +10,7 @@
 #include <LogBroadcaster.h>
 #include <map>
 
-/// @brief Defines a generic actions class for inheriting 
+/// @brief Defines a generic actor class for inheriting 
 class Actor : public DeviceConfig {
 	public:
 		/// @brief Holds the description of the device
