@@ -104,7 +104,7 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 	int new_action[] { actorPosID, actionID };
 
 	// Add actor array to queue
-	if (xQueueSend(actorQueue, &new_action, 10) != pdTRUE) {
+	if (xQueueSend(actorQueue, &new_action, 10 / portTICK_PERIOD_MS) != pdTRUE) {
 		Logger.println("Actor queue full");
 		return false;
 	}
@@ -315,9 +315,9 @@ void ActorManager::actionProcessor(void* arg) {
 	String* payload;
 	while(true) {
 		// Process all actions in the queue
-		while (xQueueReceive(actorQueue, &action, 10) == pdTRUE)
+		while (xQueueReceive(actorQueue, &action, portMAX_DELAY) == pdTRUE)
 		{
-			if (xQueueReceive(payloads, &payload, 100 / portTICK_PERIOD_MS) == pdTRUE)
+			if (xQueueReceive(payloads, &payload, portMAX_DELAY) == pdTRUE)
 			{
 				try {
 					actors[action[0]]->receiveAction(action[1], *payload);
@@ -329,6 +329,5 @@ void ActorManager::actionProcessor(void* arg) {
 				}
 			}
 		}
-		delay(1); // Token delay to allow thread to yield (unnecessary?)
 	}
 }
