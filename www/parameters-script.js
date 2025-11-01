@@ -3,10 +3,21 @@
 * Contributors: Sam Groveman
 */
 
+var autoMeasure;
+
 // Run code when page DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById("refresh").onclick = function() {
 		GETRequest("/sensors/measurement?update", addParameters);
+	}
+	document.getElementById("automeas").onclick = function() {
+		if (document.getElementById('automeas').checked) {
+			autoMeasure = setInterval(function () {
+				GETRequest("/sensors/measurement?update", addParameters);
+			}, 500); 
+		} else {
+			clearInterval(autoMeasure);
+		}
 	}
 	GETRequest("sensors/measurement", addParameters);
 
