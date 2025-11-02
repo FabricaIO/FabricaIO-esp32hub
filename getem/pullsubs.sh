@@ -38,6 +38,7 @@ declare -a subs=(
     "sensor-DummySensor"
     "sensor-GenericAnalogInput"
     "sensor-GenericDigitalInput"
+    "sensor-MPU6050IMU"
     "sensor-PlantowerPMSx003"
     "sensor-VEML7700LightSensor"
     "util-DigitalInputTrigger"
