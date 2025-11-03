@@ -129,7 +129,7 @@ String ActorManager::getActorInfo() {
 	for (int i = 0; i < actors.size(); i++) {
 		// Add receiver description to JSON document 
 		actor_array[i]["positionID"] = i;
-		actor_array[i]["description"]["actionQuantity"] = actors[i]->Description.actionQuantity;
+		actor_array[i]["description"]["actionQuantity"] = actors[i]->Description.actions.size();
 		actor_array[i]["description"]["type"] = actors[i]->Description.type;
 		actor_array[i]["description"]["name"] = actors[i]->Description.name;
 		actor_array[i]["description"]["version"] = actors[i]->Description.version;

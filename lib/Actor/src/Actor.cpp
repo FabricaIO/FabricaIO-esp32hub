@@ -11,7 +11,7 @@ Actor::Actor(String DeviceName) {
 /// @param payload An optional JSON string for data payload
 /// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
 std::tuple<bool, String> Actor::receiveAction(int action, String payload) {
-	if (action >= 0 && action < Description.actionQuantity)
+	if (action >= 0 && action < Description.actions.size())
 		return { true, R"({"success": false})" };
 	else 
 		return {true , R"({"success": true})" };
