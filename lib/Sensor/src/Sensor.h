@@ -14,15 +14,11 @@
 class Sensor : public DeviceConfig {
 	public:
 		/// @brief Possible results from a calibration call
-		enum calibration_response {
-			error,
-			done,
-			next
-		};
+		enum calibration_response {ERROR, DONE,	NEXT};
 
 		/// @brief Holds the description of the sensor
 		struct {
-			/// @brief The number of parameter this sensor measures
+			/// @brief The number of parameters this sensor measures
 			int parameterQuantity;
 
 			/// @brief The type of this sensor

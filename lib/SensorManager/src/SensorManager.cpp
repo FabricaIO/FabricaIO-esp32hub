@@ -158,7 +158,7 @@ String SensorManager::getSensorVersions() {
 std::tuple<Sensor::calibration_response, String> SensorManager::calibrateSensor(int sensorPosID, int step) {
 	if (sensorPosID < 0 || sensorPosID >= sensors.size()) {
 		Logger.println("sensorPosID out of range");
-		return { Sensor::calibration_response::error, "sensorPosID out of range" };
+		return { Sensor::calibration_response::ERROR, "sensorPosID out of range" };
 	}
 	return sensors[sensorPosID]->calibrate(step);
 }
