@@ -6,6 +6,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # List of subs to pull
 declare -a subs=(
+    "actor-ButtonWebhook"
     "actor-DataTemplate"
     "actor-DFAutoPeristalticPump"
     "actor-DFPeriodicPeristalticPump"
@@ -17,9 +18,9 @@ declare -a subs=(
     "actor-LocalDataLogger"
     "actor-NeoPixelsController"
     "actor-PeriodicActionTrigger"
+    "actor-ResetButton"
     "actor-SensorActionTrigger"
     "actor-SensorChangeTrigger"
-    "actor-ResetButton"
     "actor-TimerSwitch"
     "actor-WebhookAction"
     "eventreceiver-LEDIndicator"
@@ -41,8 +42,9 @@ declare -a subs=(
     "sensor-MPU6050IMU"
     "sensor-PlantowerPMSx003"
     "sensor-VEML7700LightSensor"
+    "util-ActionTrigger"
     "util-DigitalInputTrigger"
-    "util-ParameterTrigger"
+    "util-ParameterGetter"
     "util-SunsetSunrise"
     "util-Webhook"
     )
