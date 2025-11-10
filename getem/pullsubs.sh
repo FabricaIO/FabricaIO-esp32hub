@@ -68,5 +68,3 @@ do
 done
 
 cd ${START_DIR}
-
-# You can access them using echo "${arr[0]}", "${arr[1]}" also
