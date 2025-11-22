@@ -7,6 +7,7 @@
 #pragma once
 #include <Arduino.h>
 
+/// @brief Class for log receivers devices to inherit to receive log messages from hub
 class LogReceiver {
 	public:
 		/// @brief Contains a description of this receiver

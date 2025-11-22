@@ -14,6 +14,7 @@
 #include <EventBroadcaster.h>
 #include <LogBroadcaster.h>
 
+/// @brief Allows for dynamic WiFi configuration
 class WiFiConfig {
 	public:
 		WiFiConfig(AsyncWiFiManager* WiFiManager, String SSID, String Password);

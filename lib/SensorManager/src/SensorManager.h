@@ -12,6 +12,7 @@
 #include <vector>
 #include <ArduinoJson.h>
 
+/// @brief Manages and interfaces with all sensor devices
 class SensorManager {
 	private:
 		/// @brief Collects all the senors that are in use
