@@ -1,6 +1,6 @@
 #include "WiFiConfig.h"
 
-/// @brief Connects to a saved WiFi network, or configures WiFi.
+/// @brief Connects to a saved WiFi network, or configures WiFi
 /// @param WiFiManager Pointer to the WifManager object to use
 /// @param SSID SSID of setup WiFi network
 /// @param Password Password of setup WiFi network
@@ -27,16 +27,15 @@ void WiFiConfig::configModeEndCallback(AsyncWiFiManager *myWiFiManager)
 	Logger.println(WiFi.localIP());
 }
 
-/// @brief Attempts to connect to Wi-Fi network
+/// @brief Attempts to connect to WiFi network
 void WiFiConfig::connectWiFi() {    
-	// Set entered AP mode callback
 	wifiManager->setAPCallback(std::bind(&WiFiConfig::configModeCallback, this, wifiManager));
 	wifiManager->setSaveConfigCallback(std::bind(&WiFiConfig::configModeEndCallback, this, wifiManager));
 	// Fetches ssid and password and tries to connect
 	// if it does not connect it starts an access point with the specified name
 	// and goes into a blocking loop awaiting configuration
 	if (!wifiManager->autoConnect(ssid.c_str(), password.c_str(), 1, 10)) {
-		Logger.println("Failed to connect, we should reset as see if it connects");
+		Logger.println("Failed to connect, we should reset and see if it connects");
 		delay(3000);
 		ESP.restart();
 	}
