@@ -456,7 +456,10 @@ bool Webserver::ServerStart() {
 		if (request->hasParam("path")) {
 			String path = request->getParam("path")->value();
 			if (Storage::fileExists(path)) {
-				request->send(*Storage::getFileSystem(), path, "application/octet-stream");
+				String filename = path.substring(path.lastIndexOf('/') + 1);
+				AsyncWebServerResponse *response = request->beginResponse(*Storage::getFileSystem(), path, "application/octet-stream");
+				response->addHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+				request->send(response);
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "File doesn't exist");
 			}
