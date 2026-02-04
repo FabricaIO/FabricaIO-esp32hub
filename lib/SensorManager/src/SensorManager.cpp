@@ -33,8 +33,7 @@ bool SensorManager::takeMeasurement() {
 	measurements.clear();
 	// Take measurements
 	for (auto const &s : sensors) {
-		if (!s->takeMeasurement())
-		{
+		if (!s->takeMeasurement()) {
 			Logger.println("Error taking measurement from " + s->Description.name);
 			return false;
 		}
