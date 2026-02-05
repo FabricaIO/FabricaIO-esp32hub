@@ -5,14 +5,19 @@ std::unordered_map<std::string, std::function<void(long)>> PeriodicTasks::tasks;
 
 /// @brief Calls all periodic tasks
 /// @param elapsed The time in ms since the previous call of callTasks
-void PeriodicTasks::callTasks(long elapsed) {
+/// @return True on success
+bool PeriodicTasks::callTasks(long elapsed) {
 	Logger.println("Running tasks...");
-	SensorManager::takeMeasurement();
+	// Ensure sensor measurement success
+	if (!SensorManager::takeMeasurement()) {
+		return false;
+	}
 	for (const auto& task : tasks) {
 		Logger.print("Running task ");
 		Logger.println(task.first.c_str());
 		task.second(elapsed);
 	}
+	return true;
 }
 
 /// @brief Checks to see if a task currently exists

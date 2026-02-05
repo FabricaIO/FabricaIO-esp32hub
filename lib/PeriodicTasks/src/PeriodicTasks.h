@@ -11,7 +11,7 @@
 /// @brief Holds all and calls tasks at periodic intervals
 class PeriodicTasks {
 	public:
-		static void callTasks(long elapsed);
+		static bool callTasks(long elapsed);
 		static bool taskExists(std::string name);
 		static bool addTask(std::string, std::function<void(long)> callback);
 		static bool removeTask(std::string);
