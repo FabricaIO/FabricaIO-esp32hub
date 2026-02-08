@@ -170,9 +170,9 @@ void setup() {
 	Logger.print("IP Address: ");
 	Logger.println(WiFi.localIP().toString());
 	// Ready!
+	POSTSuccess = true;
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 	Logger.println("System ready!");
-	POSTSuccess = true;
 }
 
 // Used for tracking time intervals for timed events
