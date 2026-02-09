@@ -30,5 +30,25 @@ function addActors(actors) {
 
 // Adds an action to the execution queue with any payload
 function executeAction(actor, action) {
-	POSTRequest("/actors/add", "Action added to queue", {actorName: actor, actionName: action, payload: document.getElementById("payload").value});
+	if (document.getElementById("immediate").checked) {
+		POSTRequest("/actors/execute", "", {actorName: actor, actionName: action, payload: document.getElementById("payload").value}, showResult);
+	} else {
+		POSTRequest("/actors/add", "Action added to queue", {actorName: actor, actionName: action, payload: document.getElementById("payload").value});
+	}
+}
+
+// Shows the action response message
+function showResult(response) {
+	let message = 'Action executed ';
+	if (response.success) {
+		message += 'successfully.';
+	} else {
+		message += 'unsuccessfully.';
+	}
+	if (Object.hasOwn(response, 'Response')) {
+		message += " " + response.Response;
+	} else if (Object.hasOwn(response, 'response')) {
+		message += " " + response.response;
+	}
+	document.getElementById('message').innerHTML = message;
 }
