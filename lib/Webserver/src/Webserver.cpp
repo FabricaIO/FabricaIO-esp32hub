@@ -307,8 +307,11 @@ bool Webserver::ServerStart() {
 			if ((request->hasParam("actorID", true) || request->hasParam("actorName", true)) && ((request->hasParam("actionID", true) || request->hasParam("actionName", true)))) {
 				// Parse data payload
 				String payload = "";
+				if (request->hasParam("payload", true)) {
+					payload = request->getParam("payload", true)->value();
+				}
 				std::tuple<bool, String> result;
-				if (request->hasParam("actionID")) {
+				if (request->hasParam("actionID", true)) {
 					if (request->hasParam("actorID", true)) {
 						result = ActorManager::processActionImmediately(request->getParam("actorID", true)->value().toInt(), request->getParam("id", true)->value().toInt(), payload);
 					} else {
