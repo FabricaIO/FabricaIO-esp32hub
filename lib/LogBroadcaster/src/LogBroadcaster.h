@@ -25,6 +25,9 @@ class LogBroadcaster : public Print {
 		/// @brief Stores all event receivers
 		std::vector<LogReceiver*> receivers;
 
+		/// Mutex for thread safety
+		SemaphoreHandle_t receiverMutex = NULL;
+
 		size_t write(uint8_t c);
 		size_t write(const uint8_t *buffer, size_t size);
 };

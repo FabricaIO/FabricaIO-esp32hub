@@ -19,6 +19,9 @@ class EventBroadcaster {
 		/// @brief Stores all event receivers
 		static std::vector<EventReceiver*> receivers;
 
+		/// @brief Mutex to protect sending events to receivers
+		static SemaphoreHandle_t receiverMutex;
+
 	public:
 		/// @brief Stores possible events to raise
 		enum Events { Clear, Running, Ready, Starting, WifiConfig, Updating, Rebooting, Error };

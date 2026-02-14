@@ -308,14 +308,14 @@ int ActorManager::actionNameToID(String name, int actorPosID) {
 	return actor_id;
 }
 
-/// @brief Wraps the actor processor task for static access
+/// @brief Action processor task loop, processes all actions in queue
 /// @param arg Not used
 void ActorManager::actionProcessor(void* arg) {
 	int action[2];
 	String* payload;
 	while(true) {
 		// Process all actions in the queue
-		while (xQueueReceive(actorQueue, &action, portMAX_DELAY) == pdTRUE)
+		while (xQueueReceive(actorQueue, &action, pdMS_TO_TICKS(10)) == pdTRUE)
 		{
 			if (xQueueReceive(payloads, &payload, portMAX_DELAY) == pdTRUE)
 			{
@@ -329,5 +329,6 @@ void ActorManager::actionProcessor(void* arg) {
 				}
 			}
 		}
+		delay(2); // Used to allow thread to yield (unnecessary?)
 	}
 }

@@ -64,7 +64,7 @@ bool Configuration::updateConfig(String config) {
 	currentConfig.hostname = doc["hostname"].as<String>();
 	currentConfig.mdns = doc["mdns"].as<bool>();
 	currentConfig.useDigestAuth = doc["useDigestAuth"].as<bool>();
-	if (currentConfig.WiFiClient) {
+	if (currentConfig.WiFiClient && currentConfig.useNTP) {
 		// Set local time via NTP
 		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
 		Logger.println("Time set via NTP");

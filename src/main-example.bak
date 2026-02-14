@@ -22,13 +22,10 @@
 #include <LogBroadcaster.h>
 
 /// @brief Current firmware version
-extern const String FW_VERSION = "0.5.0";
+extern const String FW_VERSION = "0.6.0";
 
 /// @brief Set to true when the POST finishes successfully
 bool POSTSuccess = false;
-
-/// @brief Broadcasts log messages
-LogBroadcaster logger;
 
 /// @brief AsyncWebServer object (passed to WfiFiConfig and WebServer)
 AsyncWebServer server(80);
@@ -38,6 +35,18 @@ Webserver webserver(&server);
 
 /// @brief Loads all actor, sensor, and event receiver devices
 DeviceLoader loader;
+
+/// @brief Handle to track periodic task loop
+TaskHandle_t periodicHandle = NULL;
+
+/// @brief The number of ms that have passed when the loop is run
+volatile ulong current_millis_task = 0;
+
+/// @brief Handle for NTP task loop
+TaskHandle_t ntpTaskHandle = NULL;
+
+/// @brief  The number of ms that have passed when the loop is run
+volatile ulong current_millis_ntp = 0;
 
 /// @brief Handles disconnection from WiFi (adapted from https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/#11)
 /// @param event The event
@@ -57,6 +66,52 @@ void WiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 		Logger.println("WiFi reconnected");
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 	}
+}
+
+/// @brief Checks for and runs periodic tasks as needed
+/// @param args Not used
+void periodicTaskLoop(void* args) {
+	/// @brief The number of ms at which periodic tasks were last run
+	ulong previous_millis_task = 0;
+	
+	while(Configuration::currentConfig.tasksEnabled) {
+		current_millis_task = millis();
+		if (current_millis_task - previous_millis_task > Configuration::currentConfig.period) {
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Running);
+			if (!PeriodicTasks::callTasks(current_millis_task - previous_millis_task)) {
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			} else {
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
+			}
+			previous_millis_task = current_millis_task;
+		}
+		delay(1); // Token delay to allow thread to yield (unnecessary?)
+	}
+	Logger.println("Periodic task loop exiting");
+	periodicHandle = NULL;
+	vTaskDelete(NULL);
+}
+
+/// @brief Updates time via NTP as needed
+/// @param args Not used
+void ntpTaskLoop(void* args) {
+	/// @brief The number of ms at which NTP sync was last run
+	ulong previous_millis_ntp = 0;
+
+	while(Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
+		current_millis_ntp = millis();
+		// Synchronize the time at regular interval
+		if (current_millis_ntp - previous_millis_ntp > Configuration::currentConfig.ntpUpdatePeriod) {
+			Logger.println("Setting time by NTP");
+			configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
+			previous_millis_ntp = current_millis_ntp;
+		}
+		// NTP will never sync more frequently than this, so a long delay is reasonable here
+		delay(30000);
+	}
+	Logger.println("NTP sync loop exiting");
+	ntpTaskHandle = NULL;
+	vTaskDelete(NULL);
 }
 
 void setup() {
@@ -132,7 +187,7 @@ void setup() {
 	// Start MDNS service
 	if (Configuration::currentConfig.mdns) {
 		if(!MDNS.begin(Configuration::currentConfig.hostname)) {
-			Logger.println("Couldn not start MDNS service");
+			Logger.println("Could not start MDNS service");
 			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 			while(true);
 		}
@@ -142,6 +197,13 @@ void setup() {
 	if (Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
 		configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
 	}
+
+	// Start periodic task controller
+	if (!PeriodicTasks::begin()) {
+		Logger.println("Could not start periodic task controller");
+		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+		while(true);
+	}	
 
 	// Load all devices
 	loader.LoadDevices();
@@ -162,42 +224,70 @@ void setup() {
 	Logger.println(SensorManager::getSensorInfo());
 	Logger.println(ActorManager::getActorInfo());
 
-	// Start signal processor loop (8K of stack depth is probably overkill, but it does process potentially large JSON strings and we have the RAM, so better to be safe)
-	xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", 8192, NULL, 1, NULL);
-	
+	// Start action processor loop, the stack depth has been significantly over-provisioned for the action loop as there's no way to know what actions could be running
+	xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, NULL);
+
 	// Give info to user
 	Logger.println("Time: " + TimeInterface::getDateTime());
 	Logger.print("IP Address: ");
 	Logger.println(WiFi.localIP().toString());
+
 	// Ready!
 	POSTSuccess = true;
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 	Logger.println("System ready!");
 }
 
-// Used for tracking time intervals for timed events
-ulong current_mills = 0;
-ulong previous_mills_task = 0;
-ulong previous_millis_ntp = 0;
+/// @brief The number of ms that have passed when the loop is run
+ulong current_millis = 0;
 
 void loop() {
-	current_mills = millis();
+	current_millis = millis();
+	// Manage NTP sync loop
 	if(Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
-		// Synchronize the time at regular interval
-		if (current_mills - previous_millis_ntp > Configuration::currentConfig.ntpUpdatePeriod) {
-			Logger.println("Setting time by NTP");
-			configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
-			previous_millis_ntp = current_mills;
+		if (ntpTaskHandle == NULL) {
+			current_millis_ntp = current_millis;
+			if(xTaskCreate(ntpTaskLoop, "NTP Sync", 2048, NULL, 1, &ntpTaskHandle) != pdPASS) {
+				Logger.println("Could not create NTP sync task");
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			}
+		} else if (eTaskGetState(ntpTaskHandle) == eDeleted) {		
+			Logger.println("NTP sync loop did not exit cleanly, fixing...");
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			ntpTaskHandle = NULL;
+		} else {
+			// Check to see if NTP sync task loop is locked up
+			if (current_millis > current_millis_ntp && current_millis - current_millis_ntp > (Configuration::currentConfig.ntpUpdatePeriod * 2)) {
+				Logger.println("NTP sync loop has not run in more than two sync periods, fixing...");
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+				vTaskDelete(ntpTaskHandle);
+				ntpTaskHandle = NULL;
+			}
 		}
 	}
+	// Manage periodic task loop
 	if (Configuration::currentConfig.tasksEnabled) {
-		// Perform tasks periodically
-		if (current_mills - previous_mills_task > Configuration::currentConfig.period) {
-			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Running);
-			PeriodicTasks::callTasks(current_mills - previous_mills_task);
-			previous_mills_task = current_mills;
-			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
+		if (periodicHandle == NULL) {
+			// Periodic tasks run in their own loop so that if it crashes it can be restarted
+			current_millis_task = current_millis;
+			// The stack depth has been significantly over-provisioned for the task loop as there's no way to know what tasks could be running
+			if(xTaskCreate(periodicTaskLoop, "Periodic Tasks", getArduinoLoopTaskStackSize() * 2, NULL, 1, &periodicHandle) != pdPASS) {
+				Logger.println("Could not create periodic task loop");
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			}
+		} else if (eTaskGetState(periodicHandle) == eDeleted) {		
+			Logger.println("Periodic task loop did not exit cleanly, fixing...");
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			periodicHandle = NULL;
+		} else {
+			// Check to see if periodic task loop is locked up
+			if (current_millis > current_millis_task && current_millis - current_millis_task > (Configuration::currentConfig.period * 3)) {
+				Logger.println("Periodic task loop has not run in more than three task periods, fixing...");
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+				vTaskDelete(periodicHandle);
+				periodicHandle = NULL;
+			}
 		}
 	}
-	delay(1); // Token delay to allow thread to yield (unnecessary?)
+	delay(100); // This loop doesn't run time critical tasks
 }

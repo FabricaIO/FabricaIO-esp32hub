@@ -11,6 +11,7 @@
 /// @brief Holds all and calls tasks at periodic intervals
 class PeriodicTasks {
 	public:
+		static bool begin();
 		static bool callTasks(long elapsed);
 		static bool taskExists(std::string name);
 		static bool addTask(std::string, std::function<void(long)> callback);
@@ -19,4 +20,7 @@ class PeriodicTasks {
 	private:
 		/// @brief Holds a mapping of task names to the functions to call
 		static std::unordered_map<std::string, std::function<void(long)>> tasks;
+
+		/// @brief Mutex protecting access to tasks
+		static SemaphoreHandle_t taskMutex;
 };
