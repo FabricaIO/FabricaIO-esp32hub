@@ -170,7 +170,7 @@ int SensorManager::sensorNameToID(String name) {
 	try {
 		auto index = std::find_if(sensors.begin(), sensors.end(), [name](Sensor* a) {return a->Description.name == name;});
 		if (index == sensors.end()) {
-			Logger.println("Actor not found");
+			Logger.println("Sensor not found");
 			return -1;
 		}
 		sensorPosID = index - sensors.begin();
