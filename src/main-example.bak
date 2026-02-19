@@ -56,7 +56,6 @@ void WiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 	Logger.print("WiFi lost connection. Reason: ");
 	Logger.println(info.wifi_sta_disconnected.reason);
 	Logger.println("Trying to Reconnect");
-	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 	WiFi.disconnect();
 	if (WiFi.reconnect()) {
 		// Stop webserver
