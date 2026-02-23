@@ -60,7 +60,7 @@ String LogBroadcaster::getReceiverVersions() {
 }
 
 /// @brief Writes a char to all receivers
-/// @param c The char to write
+/// @param c 
 /// @return The number of bytes written (1)
 size_t LogBroadcaster::write(uint8_t c) {
 	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
@@ -69,7 +69,7 @@ size_t LogBroadcaster::write(uint8_t c) {
 	for (const auto& r : receivers) {
 		if (!r->receiveMessage((char)c)) {
 			xSemaphoreGive(receiverMutex);
-			return 0;
+			return false;
 		}
 	}
 	xSemaphoreGive(receiverMutex);
@@ -88,7 +88,7 @@ size_t LogBroadcaster::write(const uint8_t *buffer, size_t size) {
 	for (const auto& r : receivers) {
 		if (!r->receiveMessage(message)) {
 			xSemaphoreGive(receiverMutex);
-			return 0;
+			return false;
 		}
 	}
 	xSemaphoreGive(receiverMutex);

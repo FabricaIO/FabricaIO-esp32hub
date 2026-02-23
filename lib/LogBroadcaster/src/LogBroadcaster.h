@@ -25,8 +25,7 @@ class LogBroadcaster : public Print {
 		/// @brief Stores all event receivers
 		std::vector<LogReceiver*> receivers;
 
-		/// @brief Mutex for thread safety.
-		/// @note This is used instead of a queue since a queue could quickly fill up. May try queue anyway
+		/// Mutex for thread safety
 		SemaphoreHandle_t receiverMutex = NULL;
 
 		size_t write(uint8_t c);
