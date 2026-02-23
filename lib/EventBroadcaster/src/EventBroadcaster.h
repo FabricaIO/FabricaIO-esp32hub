@@ -22,6 +22,9 @@ class EventBroadcaster {
 		/// @brief Mutex to protect sending events to receivers
 		static SemaphoreHandle_t receiverMutex;
 
+		/// @brief Queue to hold events to be processed
+		static QueueHandle_t eventQueue;
+
 	public:
 		/// @brief Stores possible events to raise
 		enum Events { Clear, Running, Ready, Starting, WifiConfig, Updating, Rebooting, Error };
@@ -30,4 +33,5 @@ class EventBroadcaster {
 		static bool broadcastEvent(Events event);
 		static bool addReceiver(EventReceiver* receiver);
 		static String getReceiverVersions();
+		static void eventProcessor(void* arg);
 };

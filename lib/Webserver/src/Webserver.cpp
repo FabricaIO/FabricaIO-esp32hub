@@ -544,14 +544,8 @@ void Webserver::ServerStop() {
 	server->end();
 }
 
-/// @brief Wraps the reboot checker task for static access
-/// @param arg The Webserver object
-void Webserver::RebootCheckerTaskWrapper(void* arg) {
-	static_cast<Webserver*>(arg)->RebootChecker();
-}
-
 /// @brief Checks if a reboot was requested
-void Webserver::RebootChecker() {
+void Webserver::RebootChecker(void* arg) {
 	while (true) {
 		if (Webserver::shouldReboot) {
 			Logger.println("Rebooting from API call...");

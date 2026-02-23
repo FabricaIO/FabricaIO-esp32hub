@@ -2,8 +2,8 @@
 
 // Initialize static variables
 std::vector<EventReceiver*> EventBroadcaster::receivers;
-
-SemaphoreHandle_t EventBroadcaster::receiverMutex =  xSemaphoreCreateMutex();;
+SemaphoreHandle_t EventBroadcaster::receiverMutex =  xSemaphoreCreateMutex();
+QueueHandle_t EventBroadcaster::eventQueue = xQueueCreate(10, sizeof(int));
 
 /// @brief Begins on the subscribed receivers
 /// @return True on success
@@ -15,6 +15,16 @@ bool EventBroadcaster::beginReceivers() {
 			return false;
 		}
 	}
+
+	// Ensure event queue was created
+	if (eventQueue == NULL) {
+		eventQueue = xQueueCreate(10, sizeof(int));
+		if (eventQueue == NULL) {
+			return false;
+		}
+	}
+
+	// Take mutex and being all receivers
 	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
 		Logger.println("Event broadcaster failed to acquire mutex");
 		return false;
@@ -32,16 +42,13 @@ bool EventBroadcaster::beginReceivers() {
 /// @param event The event to broadcast
 /// @return True on success
 bool EventBroadcaster::broadcastEvent(Events event) {
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
-		Logger.println("Event broadcaster failed to acquire mutex");
+	int event_value = (int)event;
+	
+	// Add event to queue with blocking
+	if (xQueueSend(eventQueue, &event_value, pdMS_TO_TICKS(10000)) != pdTRUE) {
+		Logger.println("Failed to queue event");
 		return false;
 	}
-	for (const auto& r : EventBroadcaster::receivers) {
-		if (!r->receiveEvent((int)event)) {
-			return false;
-		}
-	}
-	xSemaphoreGive(receiverMutex);
 	return true;
 }
 
@@ -73,4 +80,34 @@ String EventBroadcaster::getReceiverVersions() {
 		
 	}
 	return output;
+}
+
+/// @brief Event processor task loop, processes all events in queue and broadcasts to receivers
+/// @param arg Not used
+void EventBroadcaster::eventProcessor(void* arg) {
+    int event;
+    while(true) {
+        // Process all events in the queue
+        while (xQueueReceive(eventQueue, &event, pdMS_TO_TICKS(10)) == pdTRUE)
+        {
+            // Take mutex before accessing receivers
+            if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+                try {
+                    for (const auto& r : EventBroadcaster::receivers) {
+                        if (!r->receiveEvent(event)) {
+                            break;  // Stop if a receiver fails
+                        }
+                    }
+                }
+                catch (...) {
+                    Logger.println("Exception in processing event from queue");
+                }
+                xSemaphoreGive(receiverMutex);
+            } else {
+                // If we can't get the mutex, put the event back and try again
+                xQueueSend(eventQueue, &event, 0);
+            }
+        }
+        delay(5);  // Yield to allow other tasks to run
+    }
 }

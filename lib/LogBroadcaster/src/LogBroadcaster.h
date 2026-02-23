@@ -20,13 +20,17 @@ class LogBroadcaster : public Print {
 		bool beginReceivers();
 		bool addReceiver(LogReceiver* receiver);
 		String getReceiverVersions();
+		static void messageProcessor(void* arg);
 
 	private:
 		/// @brief Stores all event receivers
 		std::vector<LogReceiver*> receivers;
 
-		/// Mutex for thread safety
+		/// @brief Mutex for thread safety when modifying receivers
 		SemaphoreHandle_t receiverMutex = NULL;
+
+		/// @brief Queue to hold messages to be processed
+		static QueueHandle_t messageQueue;
 
 		size_t write(uint8_t c);
 		size_t write(const uint8_t *buffer, size_t size);

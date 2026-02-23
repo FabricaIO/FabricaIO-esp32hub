@@ -33,7 +33,7 @@ class Webserver {
 		Webserver(AsyncWebServer* webserver);
 		bool ServerStart();
 		void ServerStop();
-		static void RebootCheckerTaskWrapper(void* arg);
+		static void RebootChecker(void* arg);
 		
 	private:
 		/// @brief Pointer to the Webserver object
@@ -76,7 +76,6 @@ class Webserver {
 
 		static void onUpload_file(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 		static void onUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
-		void RebootChecker();
 };
 
 // @brief Text of update webpage

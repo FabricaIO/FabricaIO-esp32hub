@@ -1,11 +1,17 @@
 #include "LogBroadcaster.h"
 
+// Initialize static variables
+QueueHandle_t LogBroadcaster::messageQueue = xQueueCreate(15, sizeof(String*));
+
 /// @brief Global log broadcaster definition
 LogBroadcaster Logger;
 
 /// @brief Create a new log broadcaster
 LogBroadcaster::LogBroadcaster() {
 	receiverMutex = xSemaphoreCreateMutex();
+	if (messageQueue == NULL) {
+		messageQueue = xQueueCreate(15, sizeof(String*));
+	}
 }
 
 /// @brief Begins on the subscribed receivers
@@ -60,19 +66,16 @@ String LogBroadcaster::getReceiverVersions() {
 }
 
 /// @brief Writes a char to all receivers
-/// @param c 
+/// @param c The char to write
 /// @return The number of bytes written (1)
 size_t LogBroadcaster::write(uint8_t c) {
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
+	String* message = new String((char)c);
+
+	// Add message to queue
+	if (xQueueSend(messageQueue, &message, pdMS_TO_TICKS(10000)) != pdTRUE) {
+		delete message;
 		return 0;
 	}
-	for (const auto& r : receivers) {
-		if (!r->receiveMessage((char)c)) {
-			xSemaphoreGive(receiverMutex);
-			return false;
-		}
-	}
-	xSemaphoreGive(receiverMutex);
 	return 1;
 }
 
@@ -81,16 +84,42 @@ size_t LogBroadcaster::write(uint8_t c) {
 /// @param size The size of the buffer
 /// @return The number of bytes written
 size_t LogBroadcaster::write(const uint8_t *buffer, size_t size) {
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
+	String* message = new String((char*)buffer);
+
+	// Add message to queue
+	if (xQueueSend(messageQueue, &message, pdMS_TO_TICKS(10000)) != pdTRUE) {
+		delete message;
 		return 0;
 	}
-	String message = String((char*)buffer);
-	for (const auto& r : receivers) {
-		if (!r->receiveMessage(message)) {
-			xSemaphoreGive(receiverMutex);
-			return false;
-		}
-	}
-	xSemaphoreGive(receiverMutex);
 	return size;
+}
+
+/// @brief Message processor task loop, processes all messages in queue and sends to receivers
+/// @param arg Not used
+void LogBroadcaster::messageProcessor(void* arg) {
+    String* message;
+    while(true) {
+        // Process all messages in the queue
+        while (xQueueReceive(messageQueue, &message, pdMS_TO_TICKS(10)) == pdTRUE) {
+            // Take mutex before accessing receivers
+            if (xSemaphoreTake(Logger.receiverMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+                try {
+                    for (const auto& r : Logger.receivers) {
+                        if (!r->receiveMessage(*message)) {
+                            break;  // Stop if a receiver fails
+                        }
+                    }
+                    delete message;
+                }
+                catch (...) {
+                    delete message;
+                }
+                xSemaphoreGive(Logger.receiverMutex);
+            } else {
+                // If we can't get the mutex, put the message back and try again
+                xQueueSend(messageQueue, &message, 0);
+            }
+        }
+        delay(5);  // Yield to allow other tasks to run
+    }
 }
