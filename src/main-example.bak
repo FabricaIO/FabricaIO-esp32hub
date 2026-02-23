@@ -105,7 +105,7 @@ void ntpTaskLoop(void* args) {
 			configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
 			previous_millis_ntp = current_millis_ntp;
 		}
-		// NTP will never sync more frequently than this, so a long delay is reasonable here
+		// NTP should never sync more frequently than this, so a long delay is reasonable here
 		delay(30000);
 	}
 	Logger.println("NTP sync loop exiting");
@@ -122,6 +122,12 @@ void setup() {
 		Serial.println("Could not start all log receivers");
 		while(true);
 	}
+	// Create the task to process logger messages
+	if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, NULL) != pdPASS) {
+		Serial.println("Could not start logger messageProcessor task");
+		while(true);
+	}
+
 	// Let any serial monitors connect
 	delay(1000);
 	Logger.print("Booting ESP32 device hub V");
@@ -133,6 +139,12 @@ void setup() {
 	// Start event receivers
 	if (!EventBroadcaster::beginReceivers()) {
 		Logger.println("Could not start all event receivers");
+		while(true);
+	}
+
+	// Create the task to process logger messages
+	if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, NULL) != pdPASS) {
+		Logger.println("Could not start eventProcessor task");
 		while(true);
 	}
 
@@ -181,7 +193,7 @@ void setup() {
 
 	// Start the webserver
 	webserver.ServerStart();
-	xTaskCreate(Webserver::RebootCheckerTaskWrapper, "Reboot Checker Loop", 1024, &webserver, 1, NULL);
+	xTaskCreate(Webserver::RebootChecker, "Reboot Checker Loop", 1024, &webserver, 1, NULL);
 
 	// Start MDNS service
 	if (Configuration::currentConfig.mdns) {
@@ -224,7 +236,11 @@ void setup() {
 	Logger.println(ActorManager::getActorInfo());
 
 	// Start action processor loop, the stack depth has been significantly over-provisioned for the action loop as there's no way to know what actions could be running
-	xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, NULL);
+	if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, NULL) != pdPASS) {
+		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+		Logger.print("Could not start actionProcessor task");
+		while(true);
+	}
 
 	// Give info to user
 	Logger.println("Time: " + TimeInterface::getDateTime());
@@ -237,7 +253,7 @@ void setup() {
 	Logger.println("System ready!");
 }
 
-/// @brief The number of ms that have passed when the loop is run
+/// @brief The number of ms that have passed when the main loop is run
 ulong current_millis = 0;
 
 void loop() {
