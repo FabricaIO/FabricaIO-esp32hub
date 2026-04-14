@@ -16,6 +16,9 @@
 /// @brief Used to broadcast log messages to all receivers
 class LogBroadcaster : public Print {
 	public:
+		/// @brief Tracks the status of the loop that processes log messages
+		static volatile bool running;
+		
 		LogBroadcaster();
 		bool beginReceivers();
 		bool addReceiver(LogReceiver* receiver);
@@ -24,7 +27,7 @@ class LogBroadcaster : public Print {
 
 	private:
 		/// @brief Stores all event receivers
-		std::vector<LogReceiver*> receivers;
+		static std::vector<LogReceiver*> receivers;
 
 		/// @brief Mutex for thread safety when modifying receivers
 		SemaphoreHandle_t receiverMutex = NULL;
@@ -34,6 +37,7 @@ class LogBroadcaster : public Print {
 
 		size_t write(uint8_t c);
 		size_t write(const uint8_t *buffer, size_t size);
+		size_t addMessageToQueue(String* message, size_t size = 1);
 };
 
 /// @brief Global log broadcaster

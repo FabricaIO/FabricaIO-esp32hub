@@ -4,6 +4,7 @@
 std::vector<Actor*> ActorManager::actors;
 QueueHandle_t ActorManager::actorQueue = xQueueCreate(15, sizeof(int[2]));
 QueueHandle_t ActorManager::payloads = xQueueCreate(15, sizeof(String*));
+volatile bool ActorManager::running = false;
 
 /// @brief Adds an actor to the in-use list
 /// @param actor A pointer to the actor to add
@@ -103,7 +104,7 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 	// Create action array for queue
 	int new_action[] { actorPosID, actionID };
 
-	// Add actor array to queue
+	// Add action array to queue
 	if (xQueueSend(actorQueue, &new_action, 10 / portTICK_PERIOD_MS) != pdTRUE) {
 		Logger.println("Actor queue full");
 		return false;
@@ -311,6 +312,12 @@ int ActorManager::actionNameToID(String name, int actorPosID) {
 /// @brief Action processor task loop, processes all actions in queue
 /// @param arg Not used
 void ActorManager::actionProcessor(void* arg) {
+	running = true;
+	if (!actors.size() > 0) {
+		Logger.println("No actors, exiting action processor");
+		vTaskDelete(NULL);
+		return;
+	}
 	int action[2];
 	String* payload;
 	while(true) {
@@ -331,4 +338,6 @@ void ActorManager::actionProcessor(void* arg) {
 		}
 		delay(2); // Used to allow thread to yield (unnecessary?)
 	}
+	running = false;
+	vTaskDelete(NULL);
 }

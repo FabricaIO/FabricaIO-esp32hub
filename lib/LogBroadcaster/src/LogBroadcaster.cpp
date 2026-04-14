@@ -2,6 +2,8 @@
 
 // Initialize static variables
 QueueHandle_t LogBroadcaster::messageQueue = xQueueCreate(15, sizeof(String*));
+volatile bool LogBroadcaster::running = false;
+std::vector<LogReceiver*> LogBroadcaster::receivers;
 
 /// @brief Global log broadcaster definition
 LogBroadcaster Logger;
@@ -70,26 +72,31 @@ String LogBroadcaster::getReceiverVersions() {
 /// @return The number of bytes written (1)
 size_t LogBroadcaster::write(uint8_t c) {
 	String* message = new String((char)c);
-
-	// Add message to queue
-	if (xQueueSend(messageQueue, &message, pdMS_TO_TICKS(10000)) != pdTRUE) {
-		delete message;
-		return 0;
-	}
-	return 1;
+	return addMessageToQueue(message);
 }
 
-/// @brief Converts a char* array buffer to a String and sends it to all receivers
+/// @brief Writes a char* array buffer to all receivers
 /// @param buffer The buffer to write
 /// @param size The size of the buffer
 /// @return The number of bytes written
 size_t LogBroadcaster::write(const uint8_t *buffer, size_t size) {
 	String* message = new String((char*)buffer);
+	return addMessageToQueue(message, size);
+}
 
-	// Add message to queue
-	if (xQueueSend(messageQueue, &message, pdMS_TO_TICKS(10000)) != pdTRUE) {
+/// @brief Adds a message string to the queue
+/// @param message The string pointer to add
+/// @param size The size of the buffer
+/// @return The number of bytes written
+size_t LogBroadcaster::addMessageToQueue(String* message, size_t size) {
+	if (receivers.size() > 0) {
+		// Add message to queue
+		if (xQueueSend(messageQueue, &message, pdMS_TO_TICKS(10000)) != pdTRUE) {
+			delete message;
+			return 0;
+		}
+	} else {
 		delete message;
-		return 0;
 	}
 	return size;
 }
@@ -97,6 +104,12 @@ size_t LogBroadcaster::write(const uint8_t *buffer, size_t size) {
 /// @brief Message processor task loop, processes all messages in queue and sends to receivers
 /// @param arg Not used
 void LogBroadcaster::messageProcessor(void* arg) {
+	running = true;
+	if (!receivers.size() > 0) {
+		Serial.println("No log receivers, exiting log message processor");
+		vTaskDelete(NULL);
+		return;
+	}
     String* message;
     while(true) {
         // Process all messages in the queue
@@ -122,4 +135,6 @@ void LogBroadcaster::messageProcessor(void* arg) {
         }
         delay(5);  // Yield to allow other tasks to run
     }
+	running = false;
+	vTaskDelete(NULL);
 }

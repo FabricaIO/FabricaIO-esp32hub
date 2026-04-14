@@ -4,6 +4,7 @@
 std::vector<EventReceiver*> EventBroadcaster::receivers;
 SemaphoreHandle_t EventBroadcaster::receiverMutex =  xSemaphoreCreateMutex();
 QueueHandle_t EventBroadcaster::eventQueue = xQueueCreate(10, sizeof(int));
+volatile bool EventBroadcaster::running = false;
 
 /// @brief Begins on the subscribed receivers
 /// @return True on success
@@ -42,6 +43,9 @@ bool EventBroadcaster::beginReceivers() {
 /// @param event The event to broadcast
 /// @return True on success
 bool EventBroadcaster::broadcastEvent(Events event) {
+	if (!receivers.size() > 0) {
+		return true;
+	}
 	int event_value = (int)event;
 	
 	// Add event to queue with blocking
@@ -85,6 +89,12 @@ String EventBroadcaster::getReceiverVersions() {
 /// @brief Event processor task loop, processes all events in queue and broadcasts to receivers
 /// @param arg Not used
 void EventBroadcaster::eventProcessor(void* arg) {
+	running = true;
+	if (!receivers.size() > 0) {
+		Logger.println("No event receivers, exiting event processor");
+		vTaskDelete(NULL);
+		return;
+	}
     int event;
     while(true) {
         // Process all events in the queue
@@ -110,4 +120,6 @@ void EventBroadcaster::eventProcessor(void* arg) {
         }
         delay(5);  // Yield to allow other tasks to run
     }
+	running = false;
+	vTaskDelete(NULL);
 }

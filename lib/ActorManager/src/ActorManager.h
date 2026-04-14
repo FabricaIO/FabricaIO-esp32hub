@@ -26,6 +26,9 @@ class ActorManager {
 		static QueueHandle_t payloads;
 
 	public:
+		/// @brief Tracks the status of the loop that processes the action queue
+		static volatile bool running;
+		
 		static bool addActor(Actor* actor);
 		static bool beginActors();
 		static bool addActionToQueue(String actor, String action, String payload = "");

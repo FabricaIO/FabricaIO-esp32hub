@@ -29,6 +29,9 @@ class EventBroadcaster {
 		/// @brief Stores possible events to raise
 		enum Events { Clear, Running, Ready, Starting, WifiConfig, Updating, Rebooting, Error };
 
+		/// @brief Tracks the status of the loop that processes events
+		static volatile bool running;
+
 		static bool beginReceivers();
 		static bool broadcastEvent(Events event);
 		static bool addReceiver(EventReceiver* receiver);

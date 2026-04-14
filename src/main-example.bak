@@ -36,6 +36,15 @@ Webserver webserver(&server);
 /// @brief Loads all actor, sensor, and event receiver devices
 DeviceLoader loader;
 
+/// @brief Handle for action processor
+TaskHandle_t actionHandle = NULL;
+
+/// @brief Handle for log message processor
+TaskHandle_t loggerHandle = NULL;
+
+/// @brief Handle for event processor
+TaskHandle_t eventHandle = NULL;
+
 /// @brief Handle to track periodic task loop
 TaskHandle_t periodicHandle = NULL;
 
@@ -123,7 +132,7 @@ void setup() {
 		while(true);
 	}
 	// Create the task to process logger messages
-	if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, NULL) != pdPASS) {
+	if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, &loggerHandle) != pdPASS) {
 		Serial.println("Could not start logger messageProcessor task");
 		while(true);
 	}
@@ -143,7 +152,7 @@ void setup() {
 	}
 
 	// Create the task to process logger messages
-	if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, NULL) != pdPASS) {
+	if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, &eventHandle) != pdPASS) {
 		Logger.println("Could not start eventProcessor task");
 		while(true);
 	}
@@ -236,7 +245,7 @@ void setup() {
 	Logger.println(ActorManager::getActorInfo());
 
 	// Start action processor loop, the stack depth has been significantly over-provisioned for the action loop as there's no way to know what actions could be running
-	if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, NULL) != pdPASS) {
+	if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, &actionHandle) != pdPASS) {
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 		Logger.print("Could not start actionProcessor task");
 		while(true);
@@ -304,5 +313,34 @@ void loop() {
 			}
 		}
 	}
+
+	// Manage action processor task loop
+	if (!ActorManager::running || actionHandle == NULL) {
+		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+		Serial.println("Restarting action processor task");
+		if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, &actionHandle) != pdPASS) {
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			Logger.println("Could not start logger messageProcessor task");
+		}
+	}
+
+	// Manage logger task loop
+	if (!Logger.running || loggerHandle == NULL) {
+		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+		Serial.println("Restarting logger message task");
+		if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, &loggerHandle) != pdPASS) {
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+			Serial.println("Could not start logger messageProcessor task");
+		}
+	}
+
+	// Manage event task loop
+	if (!EventBroadcaster::running || eventHandle == NULL) {
+		Serial.println("Restarting event processor task");
+		if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, &eventHandle)!= pdPASS) {
+			Logger.println("Could not start logger messageProcessor task");
+		}
+	}
+
 	delay(100); // This loop doesn't run time critical tasks
 }
