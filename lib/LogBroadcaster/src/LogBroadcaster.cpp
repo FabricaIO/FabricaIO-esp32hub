@@ -89,14 +89,21 @@ size_t LogBroadcaster::write(const uint8_t *buffer, size_t size) {
 /// @param size The size of the buffer
 /// @return The number of bytes written
 size_t LogBroadcaster::addMessageToQueue(String* message, size_t size) {
-	if (receivers.size() > 0) {
-		// Add message to queue
-		if (xQueueSend(messageQueue, &message, pdMS_TO_TICKS(10000)) != pdTRUE) {
+	if (!receivers.size() > 0) {
+		// Ignore message (return message size since this is not an error)
+		delete message;
+	} else {
+		if(!running) {
+			// Message processor loop not running when it should be
 			delete message;
 			return 0;
 		}
-	} else {
-		delete message;
+		// Add message to queue
+		if (xQueueSend(messageQueue, &message, pdMS_TO_TICKS(10000)) != pdTRUE) {
+			// Could not add message to queue
+			delete message;
+			return 0;
+		}
 	}
 	return size;
 }

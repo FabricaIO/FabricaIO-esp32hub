@@ -44,11 +44,15 @@ bool EventBroadcaster::beginReceivers() {
 /// @return True on success
 bool EventBroadcaster::broadcastEvent(Events event) {
 	if (!receivers.size() > 0) {
+		// Discard event (this returns true because it's not an error)
 		return true;
 	}
+	if(!running) {
+		// Event processor loop not running when it should be
+		return false;
+	}
 	int event_value = (int)event;
-	
-	// Add event to queue with blocking
+	// Add event to queue
 	if (xQueueSend(eventQueue, &event_value, pdMS_TO_TICKS(10000)) != pdTRUE) {
 		Logger.println("Failed to queue event");
 		return false;

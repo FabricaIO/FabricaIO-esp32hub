@@ -101,6 +101,11 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 		return false;
 	}
 
+	if (!running) {
+		Logger.println("Action processor loop not running");
+		return false;
+	}
+
 	// Create action array for queue
 	int new_action[] { actorPosID, actionID };
 
