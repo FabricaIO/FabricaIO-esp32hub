@@ -304,14 +304,14 @@ int ActorManager::actorNameToID(String name) {
 /// @param actorPosID The ID of the of actor the action belongs to
 /// @return The ID of the action or -1 on failure
 int ActorManager::actionNameToID(String name, int actorPosID) {
-	int actor_id;
+	int action_id;
 	try {
-		actor_id = actors[actorPosID]->Description.actions.at(name);
+		action_id = actors[actorPosID]->Description.actions.at(name);
 	} catch (const std::out_of_range& e) {
-		Logger.println("Receiver cannot process actor");
+		Logger.printf("Receiver cannot process actor ID %d with action %s", actorPosID, name);
 		return -1;
 	}
-	return actor_id;
+	return action_id;
 }
 
 /// @brief Action processor task loop, processes all actions in queue
