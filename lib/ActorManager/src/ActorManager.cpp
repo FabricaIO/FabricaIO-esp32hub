@@ -308,7 +308,7 @@ int ActorManager::actionNameToID(String name, int actorPosID) {
 	try {
 		action_id = actors[actorPosID]->Description.actions.at(name);
 	} catch (const std::out_of_range& e) {
-		Logger.printf("Receiver cannot process actor ID %d with action %s", actorPosID, name);
+		Logger.printf("Receiver cannot process actor ID %d with action %s\n", actorPosID, name);
 		return -1;
 	}
 	return action_id;
