@@ -327,10 +327,8 @@ void ActorManager::actionProcessor(void* arg) {
 	String* payload;
 	while(true) {
 		// Process all actions in the queue
-		while (xQueueReceive(actorQueue, &action, pdMS_TO_TICKS(10)) == pdTRUE)
-		{
-			if (xQueueReceive(payloads, &payload, portMAX_DELAY) == pdTRUE)
-			{
+		while (xQueueReceive(actorQueue, &action, pdMS_TO_TICKS(10)) == pdTRUE) {
+			if (xQueueReceive(payloads, &payload, portMAX_DELAY) == pdTRUE)	{
 				try {
 					actors[action[0]]->receiveAction(action[1], *payload);
 					delete payload;

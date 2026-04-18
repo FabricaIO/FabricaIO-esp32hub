@@ -294,8 +294,8 @@ void loop() {
 		if (periodicHandle == NULL) {
 			// Periodic tasks run in their own loop so that if it crashes it can be restarted
 			current_millis_task = current_millis;
-			// The stack depth has been significantly over-provisioned for the task loop as there's no way to know what tasks could be running
-			if(xTaskCreate(periodicTaskLoop, "Periodic Tasks", getArduinoLoopTaskStackSize() * 2, NULL, 1, &periodicHandle) != pdPASS) {
+			// The stack depth has been over-provisioned for the task loop as there's no way to know what tasks could be running
+			if (xTaskCreate(periodicTaskLoop, "Periodic Tasks", getArduinoLoopTaskStackSize(), NULL, 1, &periodicHandle) != pdPASS) {
 				Logger.println("Could not create periodic task loop");
 				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 			}
@@ -318,7 +318,7 @@ void loop() {
 	if (!ActorManager::running || actionHandle == NULL) {
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 		Serial.println("Restarting action processor task");
-		if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, &actionHandle) != pdPASS) {
+		if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize(), NULL, 1, &actionHandle) != pdPASS) {
 			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 			Logger.println("Could not start logger messageProcessor task");
 		}

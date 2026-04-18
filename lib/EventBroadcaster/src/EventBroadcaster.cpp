@@ -6,7 +6,7 @@ SemaphoreHandle_t EventBroadcaster::receiverMutex =  xSemaphoreCreateMutex();
 QueueHandle_t EventBroadcaster::eventQueue = xQueueCreate(10, sizeof(int));
 volatile bool EventBroadcaster::running = false;
 
-/// @brief Begins on the subscribed receivers
+/// @brief Begins the subscribed receivers
 /// @return True on success
 bool EventBroadcaster::beginReceivers() {
 	// Ensure mutex was created
@@ -25,7 +25,7 @@ bool EventBroadcaster::beginReceivers() {
 		}
 	}
 
-	// Take mutex and being all receivers
+	// Take mutex and begin all receivers
 	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
 		Logger.println("Event broadcaster failed to acquire mutex");
 		return false;
