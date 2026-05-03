@@ -11,6 +11,7 @@
 #include <ArduinoJson.h>
 #include <Storage.h>
 #include <LogBroadcaster.h>
+#include <TimeInterface.h>
 
 /// @brief Holds and manages the hub configuration
 class Configuration {
@@ -74,6 +75,7 @@ class Configuration {
 		} config;
 
 		static String configToJSON();
+		static void setDST();
 
 	public:
 		/// @brief The currently used configuration

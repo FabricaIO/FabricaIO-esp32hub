@@ -10,7 +10,6 @@
 #include <Arduino.h>
 #include <LogBroadcaster.h>
 #include <ESP32Time.h>
-#include <Configuration.h>
 
 /// @brief Provides a static interface to access the current time
 class TimeInterface {
@@ -26,6 +25,4 @@ class TimeInterface {
 	private:
 		/// @brief Time object to use
 		static ESP32Time rtc;
-		static void setTimezone();
-
 };

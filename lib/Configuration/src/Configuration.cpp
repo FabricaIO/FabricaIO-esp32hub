@@ -67,13 +67,17 @@ bool Configuration::updateConfig(String config) {
 	if (currentConfig.WiFiClient && currentConfig.useNTP) {
 		// Set local time via NTP
 		configTime(
-			Configuration::currentConfig.gmtOffset_sec,
+			0, // ESPTime library requires internal time to be UTC
 			Configuration::currentConfig.daylightOffset_sec,
 			Configuration::currentConfig.ntpServer1.c_str(),
 			Configuration::currentConfig.ntpServer2.c_str(),
 			Configuration::currentConfig.ntpServer3.c_str());
 		Logger.println("Time set via NTP");
+	} else {
+		// ESPTime library can't handle DST, use built in functions
+		setDST();
 	}
+	TimeInterface::setOffset(currentConfig.gmtOffset_sec);
 	return true;
 }
 
@@ -129,4 +133,26 @@ String Configuration::configToJSON() {
 	// Serialize to string
 	serializeJson(doc, output);
 	return output;
+}
+
+void Configuration::setDST() {
+	// Taken from https://raw.githubusercontent.com/espressif/arduino-esp32/refs/heads/master/cores/esp32/esp32-hal-time.c
+	long daylight = Configuration::currentConfig.daylightOffset_sec;
+
+	char cst[21] = {0};
+	char cdt[21] = "DST";
+	char tz[41] = {0};
+
+	snprintf(cst, sizeof(cst), "UTC%ld", 0);
+	if (daylight != 3600) {
+		long tz_dst = -daylight;
+		if (tz_dst % 3600) {
+			snprintf(cdt, sizeof(cdt), "DST%ld:%02u:%02u", tz_dst / 3600, abs((tz_dst % 3600) / 60), abs(tz_dst % 60));
+		} else {
+			snprintf(cdt, sizeof(cdt), "DST%ld", tz_dst / 3600);
+		}
+	}
+	snprintf(tz, sizeof(tz), "%s%s", cst, cdt);
+	setenv("TZ", tz, 1);
+	tzset();
 }
