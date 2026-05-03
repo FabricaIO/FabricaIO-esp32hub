@@ -15,22 +15,25 @@ bool SensorManager::addSensor(Sensor* sensor) {
 /// @brief Calls the begin function on all the in-use sensors
 /// @return True if all sensors started correctly
 bool SensorManager::beginSensors() {
+	int size = 0;
 	for (auto const &s : sensors) {
 		if (!s->begin()) {
 			Logger.println("Could not start " + s->Description.name);
 			return false;
 		} else {
+			size += s->Description.parameterQuantity;
 			Logger.println("Started " + s->Description.name);
 		}
 	}
-	return true;
+	measurements.resize(size);
+	// Seed measurement vector
+	return takeMeasurement();
 }
 
 /// @brief Takes a measurement form each sensors and stores it in the Measurements object
 /// @return True if each sensor completes a measurement successfully
 bool SensorManager::takeMeasurement() {
-	// Clears any old measurements
-	measurements.clear();
+	int index = 0;
 	// Take measurements
 	for (auto const &s : sensors) {
 		if (!s->takeMeasurement()) {
@@ -39,12 +42,13 @@ bool SensorManager::takeMeasurement() {
 		}
 		// Add measurements to results
 		for (int i = 0; i < s->Description.parameterQuantity; i++) {
-			measurements.push_back(measurement {
+			measurements[index] = measurement {
 				.name = s->Description.name,
 				.parameter = s->Description.parameters[i],
 				.value = s->values[i],
 				.unit = s->Description.units[i]
-			});
+			};
+			index++;
 		}
 	}
 	return true;
