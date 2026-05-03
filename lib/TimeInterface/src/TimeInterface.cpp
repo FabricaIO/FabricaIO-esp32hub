@@ -27,14 +27,20 @@ String TimeInterface::getDateTime(bool longDate) {
 /// @param ms microseconds (optional)
 void TimeInterface::setTime(int sc, int mn, int hr, int dy, int mt, int yr, int ms) {
 	rtc.setTime(sc, mn, hr, dy, mt, yr, ms);
+	if (!Configuration::currentConfig.useNTP) {
+		setTimezone();
+	}
 }
 
 
 /// @brief Sets the time using time since Unix epoch
 /// @param epoch Epoch time in seconds
-/// @param ms microseconds (optional)
-void TimeInterface::setTime(unsigned long epoch, int ms) {
-	rtc.setTime(epoch, ms);
+/// @param us microseconds (optional)
+void TimeInterface::setTime(unsigned long epoch, int us) {
+	rtc.setTime(epoch, us);
+	if (!Configuration::currentConfig.useNTP) {
+		setTimezone();
+	}
 }
 
 /// @brief Sets the GMT timezone offset
@@ -53,4 +59,32 @@ long TimeInterface::getEpoch() {
 /// @return The seconds since the Unix epoch
 long TimeInterface::getLocalEpoch() {
 	return rtc.getLocalEpoch();
+}
+
+/// @brief Sets the timezone from the configuration
+void TimeInterface::setTimezone() {
+	// Taken from https://raw.githubusercontent.com/espressif/arduino-esp32/refs/heads/master/cores/esp32/esp32-hal-time.c
+	long offset = -Configuration::currentConfig.gmtOffset_sec;
+	long daylight = Configuration::currentConfig.daylightOffset_sec;
+
+	char cst[21] = {0};
+	char cdt[21] = "DST";
+	char tz[41] = {0};
+
+	if (offset % 3600) {
+		snprintf(cst, sizeof(cst), "UTC%ld:%02u:%02u", offset / 3600, abs((offset % 3600) / 60), abs(offset % 60));
+	} else {
+		snprintf(cst, sizeof(cst), "UTC%ld", offset / 3600);
+	}
+	if (daylight != 3600) {
+		long tz_dst = offset - daylight;
+		if (tz_dst % 3600) {
+			snprintf(cdt, sizeof(cdt), "DST%ld:%02u:%02u", tz_dst / 3600, abs((tz_dst % 3600) / 60), abs(tz_dst % 60));
+		} else {
+			snprintf(cdt, sizeof(cdt), "DST%ld", tz_dst / 3600);
+		}
+	}
+	snprintf(tz, sizeof(tz), "%s%s", cst, cdt);
+	setenv("TZ", tz, 1);
+	tzset();
 }
