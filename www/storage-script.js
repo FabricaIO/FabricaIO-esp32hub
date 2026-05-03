@@ -30,10 +30,18 @@ function updateFileList() {
 	getFileList("/", 5);
 }
 
-// Get list of files
-function getFileList(filePath, traverseDepth = 0) {
-	GETRequest("/list", addFileList, { path: filePath, depth: 0 });
-	GETRequest("/list", addDirs, { path: filePath, type: 1, depth: traverseDepth });
+async function getFileList(filePath, traverseDepth = 0) {
+	try {
+		const [fileListResponse, dirsResponse] = await Promise.all([
+			GETRequest("/list", { path: filePath, depth: 0 }),
+			GETRequest("/list", { path: filePath, type: 1, depth: traverseDepth })
+		]);
+		
+		addFileList(fileListResponse);
+		addDirs(dirsResponse);
+	} catch (e) {
+		console.error(e);
+	}
 }
 
 let filesLoaded = false;
@@ -41,61 +49,68 @@ let filesLoaded = false;
 // Processes each directory one by one
 async function addDirs(response) {
 	if (response != null) {
-		for (let i = 0; i < response.list.length; i++)
-		{
-			while (!filesLoaded) {
-				await new Promise(r => setTimeout(r, 10));
-			}
-			filesLoaded = false;
-			GETRequest("/list", addFileList, { path: response.list[i], type: 0, depth: 0 });
-		}
+		const requests = response.list.map(dirPath => 
+			GETRequest("/list", { path: dirPath, type: 0, depth: 0 })
+		);
+		const results = await Promise.all(requests);
+		results.forEach(fileListResponse => addFileList(fileListResponse));
 	}
 }
 
 // Callback for receiving file list data
-async function addFileList(response) {
-	if (response != null) {
-		let list = document.getElementById("file-list");
-		for (let i = 0; i < response.list.length; i++)
-		{
-			list.innerHTML += `
-			<tr class="file">
-				<td>` + response.list[i] + `</td>
-				<td class="download"><a href="/download?path=` + response.list[i] + `">Download</a>
-				<td class="delete" onclick="deleteFile(this)" data-name="` + response.list[i] + `">Delete</td>
-			</tr>`;
-		}
+function addFileList(response) {
+	if (response == null || response.list.length === 0) {
+		return;
 	}
-	await new Promise(r => setTimeout(r, 10));
-	filesLoaded = true;
+	
+	let list = document.getElementById("file-list");
+	const fragment = document.createDocumentFragment();
+	
+	for (let i = 0; i < response.list.length; i++) {
+		const fileName = response.list[i];
+		const tr = document.createElement("tr");
+		tr.className = "file";
+		tr.innerHTML = `
+			<td>${fileName}</td>
+			<td class="download"><a href="/download?path=${fileName}">Download</a></td>
+			<td class="delete" data-name="${fileName}">Delete</td>
+		`;
+		tr.querySelector(".delete").addEventListener("click", function() {
+			deleteFile(this);
+		});
+		fragment.appendChild(tr);
+	}
+	
+	list.appendChild(fragment);
 }
 
 // Delete file
-function deleteFile(file) {
+async function deleteFile(file) {
 	let name = file.dataset.name;
 	if (confirm("Delete " + name + "?")) {
-		POSTRequest("/delete", "File deleted!", { path: name }, fileDeleted);
+		try {
+			const response = await POSTRequest("/delete", "File deleted!", { path: name });
+			
+			// Remove the file from the DOM
+			const fileElement = document.querySelector('[data-name="' + response.file + '"]');
+			fileElement.parentNode.remove();
+			
+			document.getElementById('message').innerHTML = 'File deleted!';
+			getFreeStorage();
+		} catch (err) {
+			console.error("Delete failed:", err);
+		}
 	}
 }
 
-// Callback for file being deleted
-function fileDeleted(response) {
-	let file = document.querySelector('[data-name="' + response.file + '"]');
-	document.getElementById('message').innerHTML = 'File deleted!';
-	file.parentNode.remove();
-	getFreeStorage()
-}
-
 // Gets free storage space on device
-function getFreeStorage() {
-	GETRequest("/freeSpace", addFreeSpace);
-}
-
-// Callback for receiving free storage space
-function addFreeSpace(response) {
-	if (response != null) {
+async function getFreeStorage() {
+	try {
+		const response = await GETRequest("/freeSpace");
 		let space = document.getElementById("freespace");
-		space.innerHTML = 'Free space: ' + response.space + ' bytes';
+		space.innerHTML = 'Free space: ' + response.space + ' bytes';	
+	} catch (err) {
+		console.error("Failed to fetch free storage:", err);
 	}
 }
 
@@ -103,24 +118,25 @@ function addFreeSpace(response) {
 async function downloadBackup() {
 	const files = document.querySelectorAll('.file');
 	let backups = {};
-	let dots = 1;
+	let dots = 0;
 	for (const file of files) {
-		document.getElementById('message').innerHTML = 'Backing up, please wait'
-		for (let i = 0; i < dots; i++) {
-			document.getElementById('message').innerHTML += '.';
-		}
-		if (dots == 4) {
-			dots = 0;
-		} else {
-			dots++;
-		}
-		let response = await fetch(file.querySelector('.download a').getAttribute('href'));
+		// Update progress with animated dots
+		dots = (dots % 3) + 1;
+		document.getElementById('message').innerHTML = 'Backing up, please wait' + '.'.repeat(dots);
+		
+		// Download file
+		const downloadLink = file.querySelector('.download a').getAttribute('href');
+		const response = await fetch(downloadLink);
+		
 		if (!response.ok) {
-			console.log(`Response status: ${response.status}`);
+			console.error(`Download failed: ${response.status}`);
 			document.getElementById('message').innerHTML = 'Could not complete backup';
 			return;
 		}
-		backups[file.querySelector('.delete').dataset.name] = await response.text();
+		
+		const fileName = file.querySelector('.delete').dataset.name;
+		backups[fileName] = await response.text();
+		// Avoid spamming MCU
 		await new Promise(r => setTimeout(r, 50));
 	}
 	const a = document.createElement('a');
@@ -133,22 +149,25 @@ async function downloadBackup() {
 
 // Restores a backup from a JSON file
 async function restoreBackup() {
+	if (document.getElementById("up-file").value === "") {
+		return;
+	}
 	const selectedFile = document.getElementById("up-file").files[0];
 	const reader = new FileReader();
 	document.getElementById('message').innerHTML = 'Beginning restore...';
 	reader.onload = async function(file) {
-		let files = JSON.parse(file.target.result);
-		let restored = false;
-		for (let file in files) {
-			POSTRequest('/restorefile', 'File ' + file + ' restored', {"path": file, "contents": files[file]}, async function() {
-				await new Promise(r => setTimeout(r, 50))
-				restored = true;
-			});
-			// Wait for file to be restored before proceeding
-			while (!restored) {
-				await new Promise(r => setTimeout(r, 50));
-			}
-			restored = false;
+		let files;
+		try {
+			files = JSON.parse(file.target.result);
+		} catch (e) {
+			document.getElementById('message').innerHTML = e;
+			return console.error(e);
+		}
+        console.log(files);
+		for (let filePath in files) {
+			await POSTRequest('/restorefile', 'File ' + filePath + ' restored', {"path": filePath, "contents": files[filePath]});
+			// Avoid spamming MCU too quickly
+			await new Promise(r => setTimeout(r, 50));
 		}
 		document.getElementById('message').innerHTML = 'Restore successful!';
 		getFreeStorage();

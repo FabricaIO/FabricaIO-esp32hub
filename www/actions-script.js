@@ -4,8 +4,13 @@
 */
 
 // Run code when page DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-	GETRequest("/actors/", addActors);
+document.addEventListener("DOMContentLoaded", async () => {
+	try {
+		const actorsData = await GETRequest("/actors/");
+		addActors(actorsData);
+	} catch (e) {
+		console.error(e);
+	}
 });
 
 
@@ -29,16 +34,17 @@ function addActors(actors) {
 }
 
 // Adds an action to the execution queue with any payload
-function executeAction(actor, action) {
-	if (document.getElementById("immediate").checked) {
-		POSTRequest("/actors/execute", "", {actorName: actor, actionName: action, payload: document.getElementById("payload").value}, showResult);
-	} else {
-		POSTRequest("/actors/add", "Action added to queue", {actorName: actor, actionName: action, payload: document.getElementById("payload").value});
+async function executeAction(actor, action) {
+	try {
+		if (document.getElementById("immediate").checked) {
+			response = await POSTRequest("/actors/execute", "", {actorName: actor, actionName: action, payload: document.getElementById("payload").value});
+			showResult(response);
+		} else {
+			response = await POSTRequest("/actors/add", "Action added to queue", {actorName: actor, actionName: action, payload: document.getElementById("payload").value});
+		}
+	} catch (e) {
+		return console.error(e);
 	}
-}
-
-// Shows the action response message
-function showResult(response) {
 	let message = 'Action executed ';
 	if (response.success) {
 		message += 'successfully.';

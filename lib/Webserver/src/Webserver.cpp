@@ -537,7 +537,7 @@ bool Webserver::ServerStart() {
 	return true;
 }
 
-/// @brief Stops the update server
+/// @brief Stops the webserver server
 void Webserver::ServerStop() {
 	Logger.println("Stopping web server");
 	server->reset();

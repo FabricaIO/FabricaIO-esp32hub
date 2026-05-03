@@ -4,10 +4,17 @@
 */
 
 // Run code when page DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-	GETRequest("/config/", addSettings);
-	GETRequest('/time', addTime);
-
+document.addEventListener("DOMContentLoaded", async () => {
+	try {
+		const [settingsResponse, timeResponse] = await Promise.all([
+			GETRequest('/config/'),
+			GETRequest('/time')
+		]);
+		addSettings(settingsResponse);
+		addTime(timeResponse);
+	} catch (e) {
+		console.error(e);
+	}
 });
 
 // Adds all settings to page
@@ -67,7 +74,7 @@ function addTime(response) {
 }
 
 // Parses and updates config for the sensor hub
-function updateConfig() {
+async function updateConfig() {
 	inputs = document.querySelectorAll('#settings input');
 	let new_config = {};
 	Array.from(inputs).forEach((input) => {
@@ -84,5 +91,9 @@ function updateConfig() {
 		new_config[input.name] = {"current": input.value};
 	});
 	console.log(new_config);
-	POSTRequest("/config", "Settings updated!", {'save': true, 'config': JSON.stringify(new_config)});
+	try {
+		await POSTRequest("/config", "Settings updated!", {'save': true, 'config': JSON.stringify(new_config)});
+	} catch (e) {
+		console.error(e);
+	}
 }

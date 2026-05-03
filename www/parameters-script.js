@@ -8,12 +8,12 @@ var autoMeasure;
 // Run code when page DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById("refresh").onclick = function() {
-		GETRequest("/sensors/measurement?update", addParameters);
+		updateParameters();
 	}
 	document.getElementById("automeas").onclick = function() {
 		if (document.getElementById('automeas').checked) {
 			autoMeasure = setInterval(function () {
-				GETRequest("/sensors/measurement?update", addParameters);
+				updateParameters();
 			}, 500); 
 		} else {
 			clearInterval(autoMeasure);
@@ -23,6 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+// Gets parameters from the device
+async function updateParameters() {
+	let response;
+	try {
+		response = await GETRequest("/sensors/measurement?update");
+	} catch (e) {
+		document.getElementById("message").html = "Could not fetch data";
+		return console.error(e);
+	}
+	document.getElementById("message").html = "";
+	addParameters(response);
+}
 
 // Adds all connected sensors to the page
 function addParameters(parameters) {

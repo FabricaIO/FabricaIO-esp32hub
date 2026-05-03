@@ -103,60 +103,74 @@ const char update_page[] = R"(<!DOCTYPE html>
 <div id='message'></div>
 </div>
 <script>
-var uprog = {
-	hBar : null,
-	hPercent : null,
-	hFile : null,
-	init : () => {
+let uprog = {
+	hBar: null,
+	hPercent: null,
+	hFile: null,
+	init: () => {
 		uprog.hBar = document.getElementById('up-bar');
 		uprog.hPercent = document.getElementById('up-percent');
 		uprog.hFile = document.getElementById('up-file');
 		uprog.hFile.disabled = false;
-		document.getElementById('up-label').onclick = uprog.upload;
 	},
-	update : (percent) => {
-	percent = percent + '%';
-	uprog.hBar.style.width = percent;
-	uprog.hPercent.innerHTML = percent;
-	if (percent == '100%') { uprog.hFile.disabled = false; }
+	update: (percent) => {
+		uprog.hBar.style.width = percent + '%';
+		uprog.hPercent.innerHTML = percent + '%';
+		if (percent === 100) uprog.hFile.disabled = false;
 	},
-	upload : () => {
-	if(uprog.hFile.files.length == 0 ){
-	return;
-	}
-	let file = uprog.hFile.files[0];
-	uprog.hFile.disabled = true;
-	uprog.hFile.value = '';
-	let xhr = new XMLHttpRequest(), data = new FormData();
-	data.append('upfile', file);
-	xhr.open('POST', '/update');
-	let percent = 0;
-	xhr.upload.onloadstart = (evt) => { uprog.update(0); };
-	xhr.upload.onloadend = (evt) => { uprog.update(100); };
-	xhr.upload.onprogress = (evt) => {
-		percent = Math.ceil((evt.loaded / evt.total) * 100);
-		uprog.update(percent);
-	};
-	xhr.onload = function () {
-		if (this.response != 'OK' || this.status != 202) {
-		document.getElementById('message').innerHTML = this.response;
-		} else {
-		uprog.update(100);
-		document.getElementById('message').innerHTML = 'Success, rebooting!';
-		}
-	};
-	xhr.send(data);
+	upload: (path) => {
+		return new Promise((resolve, reject) => {
+			if (uprog.hFile.files.length == 0) {
+				reject(new Error('No file selected'));
+				return;
+			}
+			
+			let file = uprog.hFile.files[0];
+			uprog.hFile.disabled = true;
+			uprog.hFile.value = '';
+			let xhr = new XMLHttpRequest(), data = new FormData();
+			data.append('upfile', file);
+			xhr.open('POST', '/update');
+			
+			let percent = 0;
+			xhr.upload.onloadstart = () => uprog.update(0);
+			xhr.upload.onprogress = (evt) => uprog.update(Math.ceil((evt.loaded / evt.total) * 100));
+			xhr.upload.onloadend = () => uprog.update(100);
+			
+			xhr.onload = function() {
+				if (this.status == 507) {
+					document.getElementById('message').innerHTML = "Not enough free storage for file!";
+					reject(new Error('Not enough free storage'));
+				} else if (this.status !== 201) {
+					document.getElementById('message').innerHTML = this.response;
+					reject(new Error(this.response));
+				} else {
+					uprog.update(100);
+					document.getElementById('message').innerHTML = 'File uploaded!';
+					updateFileList();
+					getFreeStorage();
+					resolve(this.response);
+				}
+			};
+			
+			xhr.onerror = () => reject(new Error('Network error'));
+			xhr.send(data);
+		});
 	}
 };
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 	uprog.init();
-	let xhr = new XMLHttpRequest();
-	xhr.responseType = 'json';
-	xhr.open('GET', '/version');
-	xhr.onload = function() {
-	document.getElementById("fw").innerHTML += xhr.response.hub;
-	};
-	xhr.send();
+	document.getElementById('up-label').onclick = uprog.upload;
+	try {
+		const response = await fetch('/version');
+		if (response.status !== 200) {
+			throw new Error('Failed to fetch version');
+		}
+		const data = await response.json();
+		document.getElementById("fw").innerHTML += data.hub;
+	} catch (e) {
+		console.error(e);
+	}
 });
 </script>
 <style>
@@ -199,122 +213,145 @@ const char index_page[] = R"(<!DOCTYPE html>
 <button class='def-button' id='reset'>Reset WiFi Settings</button>
 </div>
 <script>
-var uprog = {
-	hBar : null,
-	hPercent : null,
-	hFile : null,
-	init : () => {
+let uprog = {
+	hBar: null,
+	hPercent: null,
+	hFile: null,
+	init: () => {
 		uprog.hBar = document.getElementById('up-bar');
 		uprog.hPercent = document.getElementById('up-percent');
 		uprog.hFile = document.getElementById('up-file');
 		uprog.hFile.disabled = false;
-		document.getElementById('up-button').onclick = uprog.upload;
 	},
-	update : (percent) => {
-	let Percent = percent + '%';
-	uprog.hBar.style.width = Percent;
-	uprog.hPercent.innerHTML = Percent;
-	if (Percent == '100%') { uprog.hFile.disabled = false; }
+	update: (percent) => {
+		uprog.hBar.style.width = percent + '%';
+		uprog.hPercent.innerHTML = percent + '%';
+		if (percent === 100) uprog.hFile.disabled = false;
 	},
-	upload : () => {
-	if(uprog.hFile.files.length == 0 ){
-	return;
-	}
-	let file = uprog.hFile.files[0];
-	uprog.hFile.disabled = true;
-	uprog.hFile.value = '';
-	let xhr = new XMLHttpRequest(), data = new FormData();
-	data.append('upfile', file);
-	xhr.open('POST', '/upload-file');
-	xhr.setRequestHeader('FILE_UPLOAD_PATH', '/www');
-	let percent = 0;
-	xhr.upload.onloadstart = (evt) => { uprog.update(0); };
-	xhr.upload.onloadend = (evt) => { uprog.update(100); };
-	xhr.upload.onprogress = (evt) => {
-		percent = Math.ceil((evt.loaded / evt.total) * 100);
-		uprog.update(percent);
-	};
-	xhr.onload = function () {
-	if (this.status == 507) {
-			document.getElementById('message').innerHTML = "Not enough free storage for file!";
-		} else if (this.status != 201) {
-			document.getElementById('message').innerHTML = this.response;
-		} else {
-			uprog.update(100);
-			document.getElementById('message').innerHTML = 'File uploaded!';
-			updateFileList();
-			getFreeStorage();
-		}
-	};
-	xhr.send(data);
+	upload: (path) => {
+		return new Promise((resolve, reject) => {
+			if (uprog.hFile.files.length == 0) {
+				reject(new Error('No file selected'));
+				return;
+			}
+			
+			let file = uprog.hFile.files[0];
+			uprog.hFile.disabled = true;
+			uprog.hFile.value = '';
+			let xhr = new XMLHttpRequest(), data = new FormData();
+			data.append('upfile', file);
+			xhr.open('POST', '/upload-file');
+			xhr.setRequestHeader('FILE_UPLOAD_PATH', '/www');
+			
+			let percent = 0;
+			xhr.upload.onloadstart = () => uprog.update(0);
+			xhr.upload.onprogress = (evt) => uprog.update(Math.ceil((evt.loaded / evt.total) * 100));
+			xhr.upload.onloadend = () => uprog.update(100);
+			
+			xhr.onload = function() {
+				if (this.status == 507) {
+					document.getElementById('message').innerHTML = "Not enough free storage for file!";
+					reject(new Error('Not enough free storage'));
+				} else if (this.status !== 201) {
+					document.getElementById('message').innerHTML = this.response;
+					reject(new Error(this.response));
+				} else {
+					uprog.update(100);
+					document.getElementById('message').innerHTML = 'File uploaded!';
+					updateFileList();
+					getFreeStorage();
+					resolve(this.response);
+				}
+			};
+			
+			xhr.onerror = () => reject(new Error('Network error'));
+			xhr.send(data);
+		});
 	}
 };
 window.addEventListener('load', uprog.init);
-document.getElementById("reboot").onclick = function() {
-	PUTRequest("/reboot");	
+
+document.getElementById('up-button').onclick = uprog.upload;
+	
+document.getElementById("reboot").onclick = async function() {
+	await PUTRequest("/reboot", "Success, rebooting!");	
 };
-document.getElementById("reset").onclick = function() {
-	PUTRequest("/reset");
+
+document.getElementById("reset").onclick = async function() {
+	await PUTRequest("/reset", "Reset successful!");
 };
+
 document.getElementById("restore").onclick = function() {
-	console.log("test");
 	restoreBackup();
 };
+
 async function restoreBackup() {
+	if (document.getElementById("up-file").value === "") {
+		return;
+	}
 	const selectedFile = document.getElementById("up-file").files[0];
 	const reader = new FileReader();
 	document.getElementById('message').innerHTML = 'Beginning restore...';
 	reader.onload = async function(file) {
-		let files = JSON.parse(file.target.result);
-		let restored = false;
+		let files;
+		try {
+			files = JSON.parse(file.target.result);
+		} catch (e) {
+			document.getElementById('message').innerHTML = e;
+			return console.error(e);
+		}
+		
 		for (let file in files) {
-			POSTRequest('/restorefile', 'File ' + file + ' restored', {"path": file, "contents": files[file]}, async function() {
-				await new Promise(r => setTimeout(r, 50))
-				restored = true;
-			});
-			while (!restored) {
-				await new Promise(r => setTimeout(r, 50));
+			try {
+				await POSTRequest('/restorefile', 'File ' + file + ' restored', {"path": file, "contents": files[file]});
+			} catch (e) {
+				console.error(e);
 			}
-			restored = false;
 		}
 		document.getElementById('message').innerHTML = 'Restore successful!';
 	};
 	reader.readAsText(selectedFile);
 }
-function PUTRequest(path) {
-	let xhr = new XMLHttpRequest();
-	xhr.open('PUT', path);
-	xhr.onload = function () {
-		if (this.status != 200) {
-		document.getElementById('message').innerHTML = 'ERROR!';
-		} else {
-		document.getElementById('message').innerHTML = 'Success, rebooting!';
-		}
-	};
-	xhr.send();
-}
-function POSTRequest(path, successMessage, params = {}, callback = null) {
-	let xhr = new XMLHttpRequest(), data = new FormData();
-	xhr.responseType = 'json';
-	if (Object.keys(params).length !== 0 ) {
+
+async function POSTRequest(path, successMessage, params = {}) {
+	const data = new FormData();
+	if (Object.keys(params).length !== 0) {
 		for (let param in params) {
 			data.append(param, params[param]);
 		}
 	}
-	xhr.open('POST', path);
-	xhr.onload = function() {
-		if (this.status !== 200) {
-			document.getElementById('message').innerHTML = this.response;
-		} else {
-			document.getElementById('message').innerHTML = successMessage;
-			if (callback !== null) {
-				let response = xhr.response;
-				console.log(response);
-				callback(response);
-			}
+	
+	const response = await fetch(path, { method: 'POST', body: data });
+	
+	if (response.status !== 200) {
+		const error = await response.json();
+		document.getElementById('message').innerHTML = error;
+		throw new Error(error);
+	}
+	
+	document.getElementById('message').innerHTML = successMessage;
+	return response.json();
+}
+
+// Send a PUT request with an optional object of key/value pairs for parameters
+async function PUTRequest(path, successMessage, params = {}) {
+	const data = new FormData();
+	if (Object.keys(params).length !== 0) {
+		for (let param in params) {
+			data.append(param, params[param]);
 		}
-	};
-	xhr.send(data); 
+	}
+	
+	const response = await fetch(path, { method: 'PUT', body: data });
+	
+	if (response.status !== 200) {
+		const error = await response.json();
+		document.getElementById('message').innerHTML = error;
+		throw new Error(error);
+	}
+	
+	document.getElementById('message').innerHTML = successMessage;
+	return response.json();
 }
 </script>
 <style>

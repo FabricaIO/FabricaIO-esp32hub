@@ -4,10 +4,18 @@
 */
 
 // Run code when page DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-	GETRequest("/sensors/", addSensors);
-	GETRequest("/actors/", addActors);
-
+document.addEventListener("DOMContentLoaded", async () => {
+	try {
+		const [sensorsResponse, actorsResponse] = await Promise.all([
+			GETRequest("/sensors/"),
+			GETRequest("/actors/")
+		]);
+		
+		addSensors(sensorsResponse);
+		addActors(actorsResponse);
+	} catch (e) {
+		console.error(e);
+	}
 });
 
 // Adds all connected sensors to the page
@@ -37,7 +45,7 @@ function addActors(actors) {
 }
 
 // Loads a device for configuration
-function loadDevice(isSensor, name, posID) {
+async function loadDevice(isSensor, name, posID) {
 	const holder = document.getElementById("device");
 	holder.dataset.posid = posID;
 	holder.dataset.sensor = isSensor;
@@ -50,7 +58,14 @@ function loadDevice(isSensor, name, posID) {
 	}
 	data = {};
 	data[dataName] = posID;
-	GETRequest(path, addDeviceConfig, data);
+	let response;
+	try {
+		response = await GETRequest(path, data);
+	} catch (e) {
+		holder.innerHTML = '<p>Error loading device configuration</p>';
+		return console.error(e);
+	}
+	addDeviceConfig(response);
 }
 
 // Adds a device configuration to the page
@@ -107,7 +122,7 @@ function addDeviceConfig(device) {
 }
 
 // Parses and updates config for device
-function updateDeviceConfig(isSensor, posID) {
+async function updateDeviceConfig(isSensor, posID) {
 	let inputs = document.querySelectorAll('#device input');
 	let new_config = {};
 	Array.from(inputs).forEach((input) => {
@@ -124,9 +139,13 @@ function updateDeviceConfig(isSensor, posID) {
 		new_config[input.name] = {"current": input.value};
 	});
 	console.log(new_config);
-	if (isSensor) {
-		POSTRequest('/sensors/config', "Device config updated!", {'sensor': posID, 'config': JSON.stringify(new_config)});
-	} else {
-		POSTRequest('/actors/config', "Device config updated!", {'actor': posID, 'config': JSON.stringify(new_config)});
+	
+	const path = isSensor ? '/sensors/config' : '/actors/config';
+	const param = isSensor ? 'sensor' : 'actor';
+	
+	try {
+		await POSTRequest(path, "Device config updated!", {[param]: posID, 'config': JSON.stringify(new_config)});
+	} catch (e) {
+		console.error(e);
 	}
 }

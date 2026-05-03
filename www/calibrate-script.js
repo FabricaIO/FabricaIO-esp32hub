@@ -29,12 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Runs a calibration step
-function doCalibrationStep(step) {
-	POSTRequest('/sensors/calibrate', 'Calibrating...', {"sensor": sensorID, "step": step}, receiveCalibrationResponse);
-}
-
-// Receives and processes the response of a calibration step
-function receiveCalibrationResponse(response) {
+async function doCalibrationStep(step) {
+	let response;
+	try {
+		response = await POSTRequest('/sensors/calibrate', 'Calibrating...', {"sensor": sensorID, "step": step});
+	} catch (e) {
+		return console.error(e);
+	}
 	const holder = document.getElementById("calstep");
 	if (response.response === calibrationResponse.error) {
 		holder.innerHTML = '<h2>Calibration error!</h2><p>' + response.message + '</p>';

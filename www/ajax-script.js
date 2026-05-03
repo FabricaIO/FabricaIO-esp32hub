@@ -7,67 +7,52 @@
  */
 
 // Send a POST request with an optional object of key/value pairs for parameters
-// Returns the response to the optional callback provided
-function POSTRequest(path, successMessage, params = {}, callback = null) {
-	let xhr = new XMLHttpRequest(), data = new FormData();
-	document.getElementById('message').innerHTML = "";
-	xhr.responseType = 'json';
-	if (Object.keys(params).length !== 0 ) {
+async function POSTRequest(path, successMessage, params = {}) {
+	const data = new FormData();
+	if (Object.keys(params).length !== 0) {
 		for (let param in params) {
 			data.append(param, params[param]);
 		}
 	}
-	xhr.open('POST', path);
-	xhr.onload = function() {
-		if (this.status !== 200) {
-			document.getElementById('message').innerHTML = this.response;
-		} else {
-			document.getElementById('message').innerHTML = successMessage;
-			if (callback !== null) {
-				let response = xhr.response;
-				console.log(response);
-				callback(response);
-			}
-		}
-	};
-	xhr.send(data); 
+	
+	const response = await fetch(path, { method: 'POST', body: data });
+	
+	if (response.status !== 200) {
+		const error = await response.json();
+		document.getElementById('message').innerHTML = error;
+		throw new Error(error);
+	}
+	
+	document.getElementById('message').innerHTML = successMessage;
+	return response.json();
 }
 
+
 // Send a PUT request with an optional object of key/value pairs for parameters
-// Returns the response to the optional callback provided
-function PUTRequest(path, successMessage, params = {}, callback = null) {
-	let xhr = new XMLHttpRequest(), data = new FormData();
-	document.getElementById('message').innerHTML = "";
-	xhr.responseType = 'json';
-	if (Object.keys(params).length !== 0 ) {
+async function PUTRequest(path, successMessage, params = {}) {
+	const data = new FormData();
+	if (Object.keys(params).length !== 0) {
 		for (let param in params) {
 			data.append(param, params[param]);
 		}
 	}
-	xhr.open('PUT', path);
-	xhr.onload = function() {
-		if (this.status != 200) {
-			document.getElementById('message').innerHTML = this.response;
-		} else {
-			document.getElementById('message').innerHTML = successMessage;
-			if (callback !== null) {
-				let response = xhr.response;
-				console.log(response);
-				callback(response);
-			}
-		}
-	};
-	xhr.send(data);
+	
+	const response = await fetch(path, { method: 'PUT', body: data });
+	
+	if (response.status !== 200) {
+		const error = await response.json();
+		document.getElementById('message').innerHTML = error;
+		throw new Error(error);
+	}
+	
+	document.getElementById('message').innerHTML = successMessage;
+	return response.json();
 }
 
 // Send a GET request with an optional object of key value pairs for parameters
-// Returns the response to the optional callback provided
-function GETRequest(path, callback = null, params = {}) {
-    let xhr = new XMLHttpRequest();
-	document.getElementById('message').innerHTML = "";
-	xhr.responseType = 'json';
-    if (Object.keys(params).length !== 0 ) {
-		let first = true
+async function GETRequest(path, params = {}) {
+	if (Object.keys(params).length !== 0) {
+		let first = true;
 		path += "?";
 		for (let param in params) {
 			if (first) {
@@ -78,20 +63,20 @@ function GETRequest(path, callback = null, params = {}) {
 			path += param + "=" + params[param];
 		}
 	}
-    xhr.open('GET', path);
-	xhr.onload = function() {
-		if (this.status != 200) {
-			document.getElementById('message').innerHTML = this.response;
-		} else if (callback !== null) {
-			let response = xhr.response;
-			console.log(response);
-			callback(response);
-		}
-	};
-	xhr.send();
+	
+	const response = await fetch(path);
+	
+	if (response.status !== 200) {
+		const error = await response.json();
+		document.getElementById('message').innerHTML = error;
+		throw new Error(error);
+	}
+	
+	document.getElementById('message').innerHTML = "";
+	return response.json();
 }
 
-// File upload handler. Call uprog.init() first then call uprog.upload("<path>")
+// File upload handler. Call uprog.init() first, then upload.upload()
 let uprog = {
 	hBar: null,
 	hPercent: null,
@@ -103,41 +88,48 @@ let uprog = {
 		uprog.hFile.disabled = false;
 	},
 	update: (percent) => {
-		let Percent = percent + '%';
-		uprog.hBar.style.width = Percent;
-		uprog.hPercent.innerHTML = Percent;
-		if (Percent == '100%') { uprog.hFile.disabled = false; }
+		uprog.hBar.style.width = percent + '%';
+		uprog.hPercent.innerHTML = percent + '%';
+		if (percent === 100) uprog.hFile.disabled = false;
 	},
 	upload: (path) => {
-		if (uprog.hFile.files.length == 0) {
-			return;
-		}
-		let file = uprog.hFile.files[0];
-		uprog.hFile.disabled = true;
-		uprog.hFile.value = '';
-		let xhr = new XMLHttpRequest(), data = new FormData();
-		data.append('upfile', file);
-		xhr.open('POST', '/upload-file');
-		xhr.setRequestHeader('FILE_UPLOAD_PATH', path);
-		let percent = 0;
-		xhr.upload.onloadstart = () => { uprog.update(0); };
-		xhr.upload.onloadend = () => { uprog.update(100); };
-		xhr.upload.onprogress = (evt) => {
-			percent = Math.ceil((evt.loaded / evt.total) * 100);
-			uprog.update(percent);
-		};
-		xhr.onload = function() {
-			if (this.status == 507) {
-				document.getElementById('message').innerHTML = "Not enough free storage for file!";
-			} else if (this.status != 201) {
-				document.getElementById('message').innerHTML = this.response;
-			} else {
-				uprog.update(100);
-				document.getElementById('message').innerHTML = 'File uploaded!';
-				updateFileList();
-				getFreeStorage();
+		return new Promise((resolve, reject) => {
+			if (uprog.hFile.files.length == 0) {
+				reject(new Error('No file selected'));
+				return;
 			}
-		};
-		xhr.send(data);
+			
+			let file = uprog.hFile.files[0];
+			uprog.hFile.disabled = true;
+			uprog.hFile.value = '';
+			let xhr = new XMLHttpRequest(), data = new FormData();
+			data.append('upfile', file);
+			xhr.open('POST', '/upload-file');
+			xhr.setRequestHeader('FILE_UPLOAD_PATH', path);
+			
+			let percent = 0;
+			xhr.upload.onloadstart = () => uprog.update(0);
+			xhr.upload.onprogress = (evt) => uprog.update(Math.ceil((evt.loaded / evt.total) * 100));
+			xhr.upload.onloadend = () => uprog.update(100);
+			
+			xhr.onload = function() {
+				if (this.status == 507) {
+					document.getElementById('message').innerHTML = "Not enough free storage for file!";
+					reject(new Error('Not enough free storage'));
+				} else if (this.status !== 201) {
+					document.getElementById('message').innerHTML = this.response;
+					reject(new Error(this.response));
+				} else {
+					uprog.update(100);
+					document.getElementById('message').innerHTML = 'File uploaded!';
+					updateFileList();
+					getFreeStorage();
+					resolve(this.response);
+				}
+			};
+			
+			xhr.onerror = () => reject(new Error('Network error'));
+			xhr.send(data);
+		});
 	}
 };
