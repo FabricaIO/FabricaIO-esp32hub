@@ -234,6 +234,10 @@ String Storage::readFile(String path) {
 /// @return True on success
 bool Storage::writeFile(String path, String content) {
 	Logger.println("Writing file: " + path);
+	if (content.length() >= freeSpace()) {
+		Logger.println("Not enough free space");
+		return false;
+	}
 	File file = storageSystem->open(path, FILE_WRITE);
 	if (!file) {
 		Logger.println("Failed to open file for writing");
@@ -251,6 +255,10 @@ bool Storage::appendToFile(String path, String content) {
 	File file = storageSystem->open(path, FILE_APPEND);
 	if (!file) {
 		Logger.println("Failed to open file for appending");
+		return false;
+	}
+	if (content.length() + file.size() >= freeSpace()) {
+		Logger.println("Not enough free space");
 		return false;
 	}
 	return file.print(content) > 0;
