@@ -18,7 +18,7 @@ async function POSTRequest(path, successMessage, params = {}) {
 	const response = await fetch(path, { method: 'POST', body: data });
 	
 	if (response.status !== 200) {
-		const error = await response.json();
+		const error = await response.text();
 		document.getElementById('message').innerHTML = error;
 		throw new Error(error);
 	}
@@ -40,7 +40,7 @@ async function PUTRequest(path, successMessage, params = {}) {
 	const response = await fetch(path, { method: 'PUT', body: data });
 	
 	if (response.status !== 200) {
-		const error = await response.json();
+		const error = await response.text();
 		document.getElementById('message').innerHTML = error;
 		throw new Error(error);
 	}
@@ -67,7 +67,7 @@ async function GETRequest(path, params = {}) {
 	const response = await fetch(path);
 	
 	if (response.status !== 200) {
-		const error = await response.json();
+		const error = await response.text();
 		document.getElementById('message').innerHTML = error;
 		throw new Error(error);
 	}
