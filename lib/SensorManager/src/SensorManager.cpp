@@ -26,8 +26,7 @@ bool SensorManager::beginSensors() {
 		}
 	}
 	measurements.resize(size);
-	// Seed measurement vector
-	return takeMeasurement();
+	return true;
 }
 
 /// @brief Takes a measurement form each sensors and stores it in the Measurements object
