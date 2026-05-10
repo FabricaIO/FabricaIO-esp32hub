@@ -8,7 +8,7 @@ int TimeInterface::currentDaylight = 0;
 
 /// @brief Get the current formatted time
 /// @param format The C formatted time string (https://cplusplus.com/reference/ctime/strftime/)
-/// @return The formatted time as a string
+/// @return The formatted time as a string or invalid on error
 String TimeInterface::getFormattedTime(String format) {
 	time_t now = time(nullptr);
 	struct tm* timeinfo = localtime(&now);
@@ -26,22 +26,13 @@ String TimeInterface::getFormattedTime(String format) {
 /// @param longDate True to use the long date time format
 /// @return The date time as a string
 String TimeInterface::getDateTime(bool longDate) {
-	time_t now = time(nullptr);
-	struct tm* timeinfo = localtime(&now);
-	
-	if (timeinfo == nullptr) {
-		return "Invalid";
-	}
-	
-	char buffer[256];
 	if (longDate) {
 		// Format: "Monday, January 01, 2024 23:59:59"
-		strftime(buffer, sizeof(buffer), "%A, %B %d, %Y %H:%M:%S", timeinfo);
+		return getFormattedTime("%A, %B %d, %Y %H:%M:%S");
 	} else {
-		// Format: "2024-01-01 23:59:59"
-		strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+		// Format: "2024-03-30 23:59:59"
+		return getFormattedTime("%Y-%m-%d %H:%M:%S");
 	}
-	return String(buffer);
 }
 
 /// @brief Sets the time using the passed parameters
