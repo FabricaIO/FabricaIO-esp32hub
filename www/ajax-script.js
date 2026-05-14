@@ -24,7 +24,12 @@ async function POSTRequest(path, successMessage, params = {}) {
 	}
 	
 	document.getElementById('message').innerHTML = successMessage;
-	return response.json();
+	const contentType = response.headers.get('content-type');
+	if (contentType && contentType.includes('application/json')) {
+		return response.json();
+	} else {
+		return response.text();
+	}
 }
 
 
@@ -46,7 +51,13 @@ async function PUTRequest(path, successMessage, params = {}) {
 	}
 	
 	document.getElementById('message').innerHTML = successMessage;
-	return response.json();
+	// Check Content-Type header and parse accordingly
+	const contentType = response.headers.get('content-type');
+	if (contentType && contentType.includes('application/json')) {
+		return response.json();
+	} else {
+		return response.text();
+	}
 }
 
 // Send a GET request with an optional object of key value pairs for parameters
@@ -73,7 +84,12 @@ async function GETRequest(path, params = {}) {
 	}
 	
 	document.getElementById('message').innerHTML = "";
-	return response.json();
+	const contentType = response.headers.get('content-type');
+	if (contentType && contentType.includes('application/json')) {
+		return response.json();
+	} else {
+		return response.text();
+	}
 }
 
 // File upload handler. Call uprog.init() first, then upload.upload()
