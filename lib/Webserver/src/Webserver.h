@@ -330,7 +330,13 @@ async function POSTRequest(path, successMessage, params = {}) {
 	}
 	
 	document.getElementById('message').innerHTML = successMessage;
-	return response.json();
+	// Check Content-Type header and parse accordingly
+	const contentType = response.headers.get('content-type');
+	if (contentType && contentType.includes('application/json')) {
+		return response.json();
+	} else {
+		return response.text();
+	}
 }
 
 // Send a PUT request with an optional object of key/value pairs for parameters
@@ -351,7 +357,13 @@ async function PUTRequest(path, successMessage, params = {}) {
 	}
 	
 	document.getElementById('message').innerHTML = successMessage;
-	return response.json();
+	// Check Content-Type header and parse accordingly
+	const contentType = response.headers.get('content-type');
+	if (contentType && contentType.includes('application/json')) {
+		return response.json();
+	} else {
+		return response.text();
+	}
 }
 </script>
 <style>
