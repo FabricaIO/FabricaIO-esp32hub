@@ -19,7 +19,7 @@ bool DeviceConfig::setConfig(String config, bool save) {
 /// @param path The path to the config file to save
 /// @param contents The contents to save in the file
 bool DeviceConfig::saveConfig(String path, String contents) {
-	return Storage::writeFile(path, getConfig());
+	return Storage::writeFile(path, contents);
 }
 
 /// @brief Checks for the existence of the config file. Creates necessary containing directories as needed during check
