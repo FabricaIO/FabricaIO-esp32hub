@@ -46,7 +46,6 @@ bool Webserver::ServerStart() {
 	
 	// Create root directory if needed
 	if (!Storage::fileExists("/www")) {
-	{
 		if (!Storage::createDir("/www")) {
 			return false;
 		}
