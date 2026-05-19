@@ -45,9 +45,12 @@ bool Webserver::ServerStart() {
 	corsMiddleware.setHeaders("*");
 	
 	// Create root directory if needed
-	if (!Storage::fileExists("/www"))
-		if (!Storage::createDir("/www"))
+	if (!Storage::fileExists("/www")) {
+	{
+		if (!Storage::createDir("/www")) {
 			return false;
+		}
+	}
 
 	// Add request handler for index page
 	if (Storage::fileExists("/www/index.html")) {
