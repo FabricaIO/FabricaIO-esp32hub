@@ -20,14 +20,24 @@ class ActorManager {
 		static std::vector<Actor*> actors;
 
 		/// @brief Queue to hold action to be processed.
-		static QueueHandle_t actorQueue;
+		static QueueHandle_t actionQueue;
 
-		/// @brief Holds all payloads delivered with a action
-		static QueueHandle_t payloads;
+		/// @brief Struct for grouping action and payloads
+		struct actionCall {
+			int actorPosID;
+			int actionID;
+			String* payload;
+		};
 
 	public:
-		/// @brief Tracks the status of the loop that processes the action queue
-		static volatile bool running;
+		/// @brief Task handle for action processor loop
+		static TaskHandle_t actionHandle;
+
+		/// @brief Mutex for protecting access to task handle
+		static SemaphoreHandle_t taskMutex;
+
+		/// @brief True when there are no actor devices
+		static bool noActors;
 		
 		static bool addActor(Actor* actor);
 		static bool beginActors();

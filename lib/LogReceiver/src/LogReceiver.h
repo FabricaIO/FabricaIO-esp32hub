@@ -20,6 +20,6 @@ class LogReceiver {
 		} Description;
 
 		virtual bool begin();
-		virtual bool receiveMessage(String message) = 0;
-		virtual bool receiveMessage(char message) = 0;
+		virtual bool receiveMessage(const String& message) = 0;
+		virtual bool receiveMessage(const char& message) = 0;
 };

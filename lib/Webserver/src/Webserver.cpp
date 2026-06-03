@@ -8,7 +8,6 @@ extern bool POSTSuccess;
 
 // Initialize static variables
 bool Webserver::upload_abort = false;
-bool Webserver::shouldReboot = false;
 int Webserver::upload_response_code = 201;
 AsyncAuthenticationMiddleware Webserver::authMiddleware;
 
@@ -409,7 +408,7 @@ bool Webserver::ServerStart() {
 		WiFi.persistent(true);
 		WiFi.disconnect(true, true);
 		WiFi.persistent(false);
-		Webserver::shouldReboot = true;
+		startReboot();
 	}).addMiddleware(&authMiddleware);
 
 	// Handle reboot request
@@ -419,7 +418,7 @@ bool Webserver::ServerStart() {
 		} else {
 			request->send(HTTP_CODE_OK, "text/plain", "OK");
 		}
-		Webserver::shouldReboot = true;
+		startReboot();
 	}).addMiddleware(&authMiddleware);
 
 	// Handle listing files and directories
@@ -523,10 +522,12 @@ bool Webserver::ServerStart() {
 		// Let update start
 		delay(50);
 		// Check if should reboot
-		Webserver::shouldReboot = !Update.hasError();
-
+		if(!Update.hasError()) {
+			startReboot();
+		}
+		delay(100);
 		// Construct response
-		AsyncWebServerResponse *response = request->beginResponse(Webserver::shouldReboot ? HTTP_CODE_ACCEPTED : HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", this->Webserver::shouldReboot ? "OK" : "ERROR");
+		AsyncWebServerResponse *response = request->beginResponse(Webserver::rebooting ? HTTP_CODE_ACCEPTED : HTTP_CODE_INTERNAL_SERVER_ERROR, "text/plain", Webserver::rebooting ? "OK" : "ERROR");
 		response->addHeader("Connection", "close");
 		request->send(response);
 	}, onUpdate).addMiddleware(&authMiddleware);
@@ -546,21 +547,26 @@ void Webserver::ServerStop() {
 	server->end();
 }
 
-/// @brief Checks if a reboot was requested
-void Webserver::RebootChecker(void* arg) {
-	while (true) {
-		if (Webserver::shouldReboot) {
-			Logger.println("Rebooting from API call...");
-			// Pause automation before reboot
-			Configuration::currentConfig.tasksEnabled = false;
-			// Delay to show event messages, let server respond, and finish any automation
-			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Rebooting);
-			delay(3000);
-			ESP.restart();
-		}
-		// This loop doesn't need to be tight
-		delay(500);
+/// @brief Starts a reboot task
+/// @return Returns true on success
+bool Webserver::startReboot() {
+	if (!rebooting) {
+		return xTaskCreate(Reboot, "Reboot task", 1024, this, 1, NULL) == pdPASS;
 	}
+	return false;
+}
+
+/// @brief Reboots the ESP32 after letting responses close
+void Webserver::Reboot(void* arg) {
+	Webserver* caller = static_cast<Webserver*>(arg);
+	caller->rebooting = true;
+	Logger.println("Rebooting from API call...");
+	// Pause automation before reboot
+	Configuration::currentConfig.tasksEnabled = false;
+	// Delay to show event messages, let server respond, and finish any automation
+	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Rebooting);
+	delay(3000);
+	ESP.restart();
 }
 
 /// @brief Handle file uploads to a folder. Adapted from https://github.com/smford/esp32-asyncwebserver-fileupload-example

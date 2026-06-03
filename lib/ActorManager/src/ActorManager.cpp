@@ -2,9 +2,10 @@
 
 // Initialize static variables
 std::vector<Actor*> ActorManager::actors;
-QueueHandle_t ActorManager::actorQueue = xQueueCreate(15, sizeof(int[2]));
-QueueHandle_t ActorManager::payloads = xQueueCreate(15, sizeof(String*));
-volatile bool ActorManager::running = false;
+QueueHandle_t ActorManager::actionQueue = xQueueCreate(15, sizeof(ActorManager::actionCall));
+TaskHandle_t ActorManager::actionHandle = nullptr;
+SemaphoreHandle_t ActorManager::taskMutex = xSemaphoreCreateMutex();
+bool ActorManager::noActors = true;
 
 /// @brief Adds an actor to the in-use list
 /// @param actor A pointer to the actor to add
@@ -18,12 +19,30 @@ bool ActorManager::addActor(Actor* actor) {
 /// @brief Calls the begin function on all the in-use actors
 /// @return True if all actors started correctly
 bool ActorManager::beginActors() {
-	for (auto const &a : actors) {
-		if (!a->begin()) {
-			Logger.println("Could not start " + a->Description.name);
+	// Ensure queue was created
+	if (actionQueue == NULL) {
+		xQueueCreate(15, sizeof(ActorManager::actionCall));
+		if (actionQueue == NULL) {
 			return false;
-		} else {
-			Logger.println("Started " + a->Description.name);
+		}
+	}
+
+	// Ensure mutex was created
+	if (taskMutex == NULL) {
+		taskMutex = xSemaphoreCreateMutex();
+		if (taskMutex == NULL) {
+			return false;
+		}
+	}
+	if (!actors.empty()) {
+		noActors = false;
+		for (auto const &a : actors) {
+			if (!a->begin()) {
+				Logger.println("Could not start " + a->Description.name);
+				return false;
+			} else {
+				Logger.println("Started " + a->Description.name);
+			}
 		}
 	}
 	return true;
@@ -100,27 +119,28 @@ bool ActorManager::addActionToQueue(int actorPosID, int actionID, String payload
 		Logger.println("Actor position ID out of range");
 		return false;
 	}
-
-	if (!running) {
+	if (xSemaphoreTake(taskMutex, pdMS_TO_TICKS(2000)) == pdFAIL) {
+		Logger.println("Could not take action task mutex");
+		return false;
+	}
+	TaskHandle_t actionHandleCopy = actionHandle;
+	xSemaphoreGive(taskMutex);
+	if (actionHandleCopy == NULL) {
 		Logger.println("Action processor loop not running");
 		return false;
 	}
 
-	// Create action array for queue
-	int new_action[] { actorPosID, actionID };
+	actionCall new_action {
+		actorPosID,
+		actionID,
+		new String(payload)
+	};
+	// Add action to queue
+	if (xQueueSend(actionQueue, &new_action, 10 / portTICK_PERIOD_MS) != pdTRUE) {
+		Logger.println("Action queue full");
+		return false;
+	}
 
-	// Add action array to queue
-	if (xQueueSend(actorQueue, &new_action, 10 / portTICK_PERIOD_MS) != pdTRUE) {
-		Logger.println("Actor queue full");
-		return false;
-	}
-	// Add payload to queue
-	String* payload_ptr = new String(payload);
-	if (xQueueSend(payloads, &payload_ptr, 100 / portTICK_PERIOD_MS) != pdTRUE) {
-		delete payload_ptr;
-		Logger.println("Payload queue full");
-		return false;
-	}
 	return true;
 }
 
@@ -317,30 +337,26 @@ int ActorManager::actionNameToID(String name, int actorPosID) {
 /// @brief Action processor task loop, processes all actions in queue
 /// @param arg Not used
 void ActorManager::actionProcessor(void* arg) {
-	running = true;
-	if (!actors.size() > 0) {
+	if (noActors) {
 		Logger.println("No actors, exiting action processor");
+		xSemaphoreTake(taskMutex, portMAX_DELAY);
+		actionHandle = nullptr;
+		xSemaphoreGive(taskMutex);
 		vTaskDelete(NULL);
 		return;
 	}
-	int action[2];
-	String* payload;
-	while(true) {
-		// Process all actions in the queue
-		while (xQueueReceive(actorQueue, &action, pdMS_TO_TICKS(10)) == pdTRUE) {
-			if (xQueueReceive(payloads, &payload, portMAX_DELAY) == pdTRUE)	{
-				try {
-					actors[action[0]]->receiveAction(action[1], *payload);
-					delete payload;
-				}
-				catch (...) {
-					delete payload;
-					Logger.println("Exception in processing action payload from queue");
-				}
-			}
+	actionCall action;
+	while (xQueueReceive(actionQueue, &action, portMAX_DELAY) == pdTRUE) {
+		try {
+			actors[action.actorPosID]->receiveAction(action.actionID, *action.payload);
 		}
-		delay(2); // Used to allow thread to yield (unnecessary?)
+		catch (...) {
+			Logger.println("Exception in processing action payload from queue");
+		}
+		delete action.payload;
 	}
-	running = false;
+	xSemaphoreTake(taskMutex, portMAX_DELAY);
+	actionHandle = nullptr;
+	xSemaphoreGive(taskMutex);
 	vTaskDelete(NULL);
 }

@@ -12,6 +12,7 @@
 #include <ArduinoJson.h>
 #include <EventReceiver.h>
 #include <vector>
+#include <atomic>
 
 /// @brief Broadcasts device events
 class EventBroadcaster {
@@ -20,6 +21,7 @@ class EventBroadcaster {
 		static std::vector<EventReceiver*> receivers;
 
 		/// @brief Mutex to protect sending events to receivers
+		/// @note Not strictly necessary given strict startup order, but doesn't hurt
 		static SemaphoreHandle_t receiverMutex;
 
 		/// @brief Queue to hold events to be processed
@@ -29,8 +31,14 @@ class EventBroadcaster {
 		/// @brief Stores possible events to raise
 		enum Events { Clear, Running, Ready, Starting, WifiConfig, Updating, Rebooting, Error };
 
-		/// @brief Tracks the status of the loop that processes events
-		static volatile bool running;
+		/// @brief True if no receiver devices
+		static bool noReceivers;
+
+		/// @brief Task handle for event processor loop
+		static TaskHandle_t eventHandle;
+
+		/// @brief Mutex for protecting access to task handle
+		static SemaphoreHandle_t taskMutex;
 
 		static bool beginReceivers();
 		static bool broadcastEvent(Events event);

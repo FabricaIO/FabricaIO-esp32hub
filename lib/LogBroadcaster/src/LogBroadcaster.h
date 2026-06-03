@@ -12,12 +12,19 @@
 #include <ArduinoJson.h>
 #include <LogReceiver.h>
 #include <vector>
+#include <memory>
 
 /// @brief Used to broadcast log messages to all receivers
 class LogBroadcaster : public Print {
 	public:
-		/// @brief Tracks the status of the loop that processes log messages
-		static volatile bool running;
+		/// @brief True when there are no log receivers
+		static bool noReceivers;
+
+		/// @brief Task handle for message processor loop
+		static TaskHandle_t loggerHandle;
+
+		/// @brief Mutex for protecting access to task handle
+		static SemaphoreHandle_t taskMutex;
 		
 		LogBroadcaster();
 		bool beginReceivers();
@@ -29,7 +36,8 @@ class LogBroadcaster : public Print {
 		/// @brief Stores all event receivers
 		static std::vector<LogReceiver*> receivers;
 
-		/// @brief Mutex for thread safety when modifying receivers
+		/// @brief Mutex for thread safety when modifying receivers.
+		/// @note Not strictly necessary given strict startup order, but doesn't hurt
 		SemaphoreHandle_t receiverMutex = NULL;
 
 		/// @brief Queue to hold messages to be processed

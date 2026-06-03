@@ -33,20 +33,19 @@ class Webserver {
 		Webserver(AsyncWebServer* webserver);
 		bool ServerStart();
 		void ServerStop();
-		static void RebootChecker(void* arg);
 		
 	private:
 		/// @brief Pointer to the Webserver object
 		AsyncWebServer* server;
+
+		/// @brief Set true when a reboot is pending
+		bool rebooting;
 
 		/// @brief Used to indicate an upload had to be aborted
 		static bool upload_abort;
 
 		/// @brief Used to indicate the status code of the last upload
 		static int upload_response_code;
-
-		/// @brief Used to signal that a reboot is requested or needed
-		static bool shouldReboot;
 
 		/// @brief Authentication middleware for auth
 		static AsyncAuthenticationMiddleware authMiddleware;
@@ -74,6 +73,8 @@ class Webserver {
 		/// @brief CORS middleware fix
 		CORSAuthFixMiddleware corsMiddlewareFix;
 
+		bool startReboot();
+		static void Reboot(void* arg);
 		static void onUpload_file(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 		static void onUpdate(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 };
