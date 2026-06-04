@@ -274,7 +274,7 @@ bool Webserver::ServerStart() {
 				if (request->hasParam("payload")) {
 					payload = request->getParam("payload")->value();
 				}
-				std::tuple<bool, String> result;
+				std::pair<bool, String> result;
 				if (request->hasParam("actionID")) {
 					if (request->hasParam("actorID")) {
 						result = ActorManager::processActionImmediately(request->getParam("actorID")->value().toInt(), request->getParam("actionID")->value().toInt(), payload);
@@ -289,11 +289,11 @@ bool Webserver::ServerStart() {
 					}
 				}
 				String mime = "application/json";
-				if (!std::get<0>(result)) {
+				if (!result.first) {
 					mime = "text/plain";
 				}
 				// Execute action and return response
-				request->send(HTTP_CODE_OK, mime, std::get<1>(result));
+				request->send(HTTP_CODE_OK, mime, result.second);
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 			}
@@ -311,7 +311,7 @@ bool Webserver::ServerStart() {
 				if (request->hasParam("payload", true)) {
 					payload = request->getParam("payload", true)->value();
 				}
-				std::tuple<bool, String> result;
+				std::pair<bool, String> result;
 				if (request->hasParam("actionID", true)) {
 					if (request->hasParam("actorID", true)) {
 						result = ActorManager::processActionImmediately(request->getParam("actorID", true)->value().toInt(), request->getParam("id", true)->value().toInt(), payload);
@@ -326,11 +326,11 @@ bool Webserver::ServerStart() {
 					}
 				}
 				String mime = "application/json";
-				if (!std::get<0>(result)) {
+				if (!result.first) {
 					mime = "text/plain";
 				}
 				// Execute action and return response
-				request->send(HTTP_CODE_OK, mime, std::get<1>(result));
+				request->send(HTTP_CODE_OK, mime, result.second);
 			} else {
 				request->send(HTTP_CODE_BAD_REQUEST, "text/plain", "Bad request data");
 			}

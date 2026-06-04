@@ -230,8 +230,8 @@ String ActorManager::getActorVersions() {
 /// @param actor The position ID of the actor receiver
 /// @param action The name of the action
 /// @param payload An optional JSON string for data payload
-/// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
-std::tuple<bool, String> ActorManager::processActionImmediately(String actor, String action, String payload) {
+/// @return A pair with a string containing any response, and a bool indicating if it's JSON formatted
+std::pair<bool, String> ActorManager::processActionImmediately(String actor, String action, String payload) {
 	// Try to convert actor to ID
 	int actorPosID = actorNameToID(actor);
 	if (actorPosID == -1) {
@@ -251,8 +251,8 @@ std::tuple<bool, String> ActorManager::processActionImmediately(String actor, St
 /// @param actorPosID The position ID of the actor receiver
 /// @param action The name of the action
 /// @param payload An optional JSON string for data payload
-/// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
-std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, String action, String payload) {
+/// @return A pair with a string containing any response, and a bool indicating if it's JSON formatted
+std::pair<bool, String> ActorManager::processActionImmediately(int actorPosID, String action, String payload) {
 	// Check if actor exists
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
 		Logger.println("Receiver position Id out of range");
@@ -273,8 +273,8 @@ std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, 
 /// @param actor The position ID of the actor receiver
 /// @param actionID The ID of the action
 /// @param payload An optional JSON string for data payload
-/// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
-std::tuple<bool, String> ActorManager::processActionImmediately(String actor, int actionID, String payload) {
+/// @return A pair with a string containing any response, and a bool indicating if it's JSON formatted
+std::pair<bool, String> ActorManager::processActionImmediately(String actor, int actionID, String payload) {
 	// Try to convert actor to ID
 	int actorPosID = actorNameToID(actor);
 	if (actorPosID == -1) {
@@ -289,8 +289,8 @@ std::tuple<bool, String> ActorManager::processActionImmediately(String actor, in
 /// @param actorPosID The position ID of the actor receiver
 /// @param actionID The ID of the action
 /// @param payload An optional JSON string for data payload
-/// @return A tuple with a string containing any response, and a bool indicating if it's JSON formatted
-std::tuple<bool, String> ActorManager::processActionImmediately(int actorPosID, int actionID, String payload) {
+/// @return A pair with a string containing any response, and a bool indicating if it's JSON formatted
+std::pair<bool, String> ActorManager::processActionImmediately(int actorPosID, int actionID, String payload) {
 	// Check if actor exists
 	if(actorPosID < 0 || actorPosID >= actors.size()) {
 		Logger.println("Receiver position ID out of range");

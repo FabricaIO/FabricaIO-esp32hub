@@ -45,10 +45,10 @@ class ActorManager {
 		static bool addActionToQueue(int actorPosID, String action, String payload = "");
 		static bool addActionToQueue(String actor, int actionID, String payload = "");
 		static bool addActionToQueue(int actorPosID, int actionID, String payload = "");
-		static std::tuple<bool, String> processActionImmediately(String actor, String action, String payload = "");
-		static std::tuple<bool, String> processActionImmediately(int actorPosID, String action, String payload = "");
-		static std::tuple<bool, String> processActionImmediately(String actor, int actionID, String payload = "");
-		static std::tuple<bool, String> processActionImmediately(int actorPosID, int actionID, String payload = "");
+		static std::pair<bool, String> processActionImmediately(String actor, String action, String payload = "");
+		static std::pair<bool, String> processActionImmediately(int actorPosID, String action, String payload = "");
+		static std::pair<bool, String> processActionImmediately(String actor, int actionID, String payload = "");
+		static std::pair<bool, String> processActionImmediately(int actorPosID, int actionID, String payload = "");
 		static String getActorInfo();
 		static std::vector<Actor*> getActors();
 		static String getActorConfig(int actorPosID);

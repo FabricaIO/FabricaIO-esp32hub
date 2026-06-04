@@ -30,5 +30,5 @@ class Actor : public DeviceConfig {
 
 		Actor(String DeviceName);
 		virtual bool begin() = 0;
-		virtual std::tuple<bool, String> receiveAction(int action, String payload = "");
+		virtual std::pair<bool, String> receiveAction(const int action, const String& payload = "");
 };
