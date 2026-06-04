@@ -2,8 +2,7 @@
 
 // Initialize static variables
 std::vector<EventReceiver*> EventBroadcaster::receivers;
-SemaphoreHandle_t EventBroadcaster::receiverMutex =  xSemaphoreCreateMutex();
-QueueHandle_t EventBroadcaster::eventQueue = xQueueCreate(10, sizeof(int));
+QueueHandle_t EventBroadcaster::eventQueue = xQueueCreate(15, sizeof(int));
 TaskHandle_t EventBroadcaster::eventHandle = nullptr;
 SemaphoreHandle_t EventBroadcaster::taskMutex = xSemaphoreCreateMutex();
 bool EventBroadcaster::noReceivers = true;
@@ -11,14 +10,6 @@ bool EventBroadcaster::noReceivers = true;
 /// @brief Begins the subscribed receivers
 /// @return True on success
 bool EventBroadcaster::beginReceivers() {
-	// Ensure mutex was created
-	if (receiverMutex == NULL) {
-		receiverMutex = xSemaphoreCreateMutex();
-		if (receiverMutex == NULL) {
-			return false;
-		}
-	}
-
 	// Ensure mutex was created
 	if (taskMutex == NULL) {
 		taskMutex = xSemaphoreCreateMutex();
@@ -35,11 +26,6 @@ bool EventBroadcaster::beginReceivers() {
 		}
 	}
 
-	// Take mutex and begin all receivers
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
-		Logger.println("Event broadcaster failed to acquire mutex");
-		return false;
-	}
 	if (!receivers.empty()) {
 		noReceivers = false;
 		for (const auto& r : EventBroadcaster::receivers) {
@@ -48,7 +34,6 @@ bool EventBroadcaster::beginReceivers() {
 			}
 		}
 	}
-	xSemaphoreGive(receiverMutex);
 	return true;
 }
 
@@ -83,12 +68,7 @@ bool EventBroadcaster::broadcastEvent(Events event) {
 /// @param receiver A pointer to the receiver
 /// @return True on success
 bool EventBroadcaster::addReceiver(EventReceiver* receiver) {
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
-		Logger.println("Event broadcaster failed to acquire mutex");
-		return false;
-	}
 	EventBroadcaster::receivers.push_back(receiver);
-	xSemaphoreGive(receiverMutex);
 	return true;
 }
 
@@ -96,17 +76,15 @@ bool EventBroadcaster::addReceiver(EventReceiver* receiver) {
 /// @return A JSON string of all the versions
 String EventBroadcaster::getReceiverVersions() {
 	String output = "{}";
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
-		if (!receivers.empty()) {
-			// Allocate the JSON document
-			JsonDocument doc;
-			// Add versions to object
-			for (const auto& r : receivers) {
-				doc[r->Description.name] = r->Description.version;
-			}
-			serializeJson(doc, output);
-			
+	if (!receivers.empty()) {
+		// Allocate the JSON document
+		JsonDocument doc;
+		// Add versions to object
+		for (const auto& r : receivers) {
+			doc[r->Description.name] = r->Description.version;
 		}
+		serializeJson(doc, output);
+		
 	}
 	return output;
 }
@@ -126,26 +104,17 @@ void EventBroadcaster::eventProcessor(void* arg) {
 	// Process all events in the queue
 	while (xQueueReceive(eventQueue, &event, portMAX_DELAY) == pdTRUE)
 	{
-		// Take mutex before accessing receivers
-		if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
-			try {
-				for (const auto& r : EventBroadcaster::receivers) {
-					if (!r->receiveEvent(event)) {
-						break;  // Stop if a receiver fails
-					}
+		try { // Try/catch is not a great solution here, should be improved
+			for (const auto& r : EventBroadcaster::receivers) {
+				if (!r->receiveEvent(event)) {
+					Logger.printf("Error with event receiver %s", r->Description.name);
 				}
 			}
-			catch (...) {
-				Logger.println("Exception in processing event from queue");
-			}
-			xSemaphoreGive(receiverMutex);
-		} else {
-			// If mutex can't be taken, put the event back and try again
-			if (xQueueSend(eventQueue, &event, pdMS_TO_TICKS(100)) == pdFAIL) {					 
-				Logger.println("Log message dropped due to mutex contention");			
-			}
 		}
-	}
+		catch (...) {
+			Logger.println("Exception in processing event from queue");
+		}
+	} 
 	xSemaphoreTake(taskMutex, portMAX_DELAY);
 	eventHandle = nullptr;
 	xSemaphoreGive(taskMutex);

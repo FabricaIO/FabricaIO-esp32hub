@@ -347,7 +347,7 @@ void ActorManager::actionProcessor(void* arg) {
 	}
 	actionCall action;
 	while (xQueueReceive(actionQueue, &action, portMAX_DELAY) == pdTRUE) {
-		try {
+		try { // Try/catch is not a great solution here, should be improved
 			actors[action.actorPosID]->receiveAction(action.actionID, *action.payload);
 		}
 		catch (...) {

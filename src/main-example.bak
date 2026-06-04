@@ -22,7 +22,7 @@
 #include <LogBroadcaster.h>
 
 /// @brief Current firmware version
-extern const String FW_VERSION = "0.6.0";
+extern const String FW_VERSION = "0.7.0";
 
 /// @brief Set to true when the POST finishes successfully
 bool POSTSuccess = false;
@@ -35,15 +35,6 @@ Webserver webserver(&server);
 
 /// @brief Loads all actor, sensor, and event receiver devices
 DeviceLoader loader;
-
-/// @brief Handle for action processor
-TaskHandle_t actionHandle = NULL;
-
-/// @brief Handle for log message processor
-TaskHandle_t loggerHandle = NULL;
-
-/// @brief Handle for event processor
-TaskHandle_t eventHandle = NULL;
 
 /// @brief Handle to track periodic task loop
 TaskHandle_t periodicHandle = NULL;
@@ -79,21 +70,24 @@ void WiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 /// @brief Checks for and runs periodic tasks as needed
 /// @param args Not used
 void periodicTaskLoop(void* args) {
-	/// @brief The number of ms at which periodic tasks were last run
-	ulong previous_millis_task = 0;
-	
+	// The number of ticks at which tasks were last run
+	TickType_t lastWakeTime = xTaskGetTickCount();
+	/* 
+	* Large delays can overflow when pdMS_TO_TICKS is called
+	* Since the tick rate is 1 kHz default, we can avoid conversion
+	* pdMS_TO_TICKS is used elsewhere where it can't overflow for consistently and portability 
+	*/
+	static_assert(configTICK_RATE_HZ == 1000, "Expect 1 ms tick");	
 	while(Configuration::currentConfig.tasksEnabled) {
+		// Updates millis since last run for external task checking
 		current_millis_task = millis();
-		if (current_millis_task - previous_millis_task > Configuration::currentConfig.period) {
-			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Running);
-			if (!PeriodicTasks::callTasks(current_millis_task - previous_millis_task)) {
-				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-			} else {
-				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
-			}
-			previous_millis_task = current_millis_task;
+		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Running);
+		if (!PeriodicTasks::callTasks(current_millis_task - (ulong)lastWakeTime)) {
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+		} else {
+			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
 		}
-		delay(1); // Token delay to allow thread to yield (unnecessary?)
+		xTaskDelayUntil(&lastWakeTime, Configuration::currentConfig.period);
 	}
 	Logger.println("Periodic task loop exiting");
 	periodicHandle = NULL;
@@ -103,19 +97,24 @@ void periodicTaskLoop(void* args) {
 /// @brief Updates time via NTP as needed
 /// @param args Not used
 void ntpTaskLoop(void* args) {
-	/// @brief The number of ms at which NTP sync was last run
-	ulong previous_millis_ntp = 0;
-
+	// The number of ticks at which task was last run
+	TickType_t lastWakeTime = xTaskGetTickCount();
+	/* 
+	* Large delays can overflow when pdMS_TO_TICKS is called
+	* Since the tick rate is 1 kHz default, we can avoid conversion
+	* pdMS_TO_TICKS is used elsewhere where it can't overflow for consistently and portability 
+	*/
+	static_assert(configTICK_RATE_HZ == 1000, "Expect 1 ms tick");
 	while(Configuration::currentConfig.WiFiClient && Configuration::currentConfig.useNTP) {
-		current_millis_ntp = millis();
-		// Synchronize the time at regular interval
-		if (current_millis_ntp - previous_millis_ntp > Configuration::currentConfig.ntpUpdatePeriod) {
-			Logger.println("Setting time by NTP");
-			configTime(Configuration::currentConfig.gmtOffset_sec, Configuration::currentConfig.daylightOffset_sec, Configuration::currentConfig.ntpServer1.c_str(), Configuration::currentConfig.ntpServer2.c_str(), Configuration::currentConfig.ntpServer3.c_str());
-			previous_millis_ntp = current_millis_ntp;
-		}
-		// NTP should never sync more frequently than this, so a long delay is reasonable here
-		delay(30000);
+		// Updates millis since last run for external task checking
+		current_millis_ntp = millis();	
+		Logger.println("Setting time by NTP");
+		configTime(Configuration::currentConfig.gmtOffset_sec,
+				   Configuration::currentConfig.daylightOffset_sec, 
+				   Configuration::currentConfig.ntpServer1.c_str(), 
+				   Configuration::currentConfig.ntpServer2.c_str(), 
+				   Configuration::currentConfig.ntpServer3.c_str());	
+		xTaskDelayUntil(&lastWakeTime, Configuration::currentConfig.ntpUpdatePeriod);
 	}
 	Logger.println("NTP sync loop exiting");
 	ntpTaskHandle = NULL;
@@ -131,10 +130,28 @@ void setup() {
 		Serial.println("Could not start all log receivers");
 		while(true);
 	}
-	// Create the task to process logger messages
-	if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, &loggerHandle) != pdPASS) {
-		Serial.println("Could not start logger messageProcessor task");
-		while(true);
+	
+	if (!LogBroadcaster::noReceivers) {
+		// Create the task to process logger messages
+		if (xSemaphoreTake(LogBroadcaster::taskMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+			TaskHandle_t loggerTaskCopy = LogBroadcaster::loggerHandle;
+			xSemaphoreGive(LogBroadcaster::taskMutex);
+			if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, &loggerTaskCopy) != pdPASS) {
+				Serial.println("Could not start logger messageProcessor task during startup, halting");
+				while(true);
+			} else {
+				if (xSemaphoreTake(LogBroadcaster::taskMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+					LogBroadcaster::loggerHandle = loggerTaskCopy;
+					xSemaphoreGive(LogBroadcaster::taskMutex);
+				} else {
+					Serial.println("Could not assign log processor task handle during startup, halting");
+					while(true);
+				}				
+			}
+		} else {
+			Serial.println("Could not take log task mutex during startup, halting");
+			while(true);
+		}
 	}
 
 	// Let any serial monitors connect
@@ -151,10 +168,27 @@ void setup() {
 		while(true);
 	}
 
-	// Create the task to process logger messages
-	if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, &eventHandle) != pdPASS) {
-		Logger.println("Could not start eventProcessor task");
-		while(true);
+	if (!EventBroadcaster::noReceivers) {
+		if (xSemaphoreTake(EventBroadcaster::taskMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+			TaskHandle_t eventTaskCopy = EventBroadcaster::eventHandle;
+			xSemaphoreGive(EventBroadcaster::taskMutex);
+			// Create the task to process events
+			if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, &eventTaskCopy) != pdPASS) {
+				Logger.println("Could not start eventProcessor task during startup, halting");
+				while(true);
+			} else {
+				if (xSemaphoreTake(EventBroadcaster::taskMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+					EventBroadcaster::eventHandle = eventTaskCopy;
+					xSemaphoreGive(EventBroadcaster::taskMutex);
+				} else {
+					Logger.println("Could not assign event processor task handle during startup, halting");
+					while(true);
+				}
+			}
+		} else {
+			Logger.println("Could not take event task mutex during startup, halting");
+			while(true);
+		}
 	}
 
 	// Broadcast startup event
@@ -202,7 +236,6 @@ void setup() {
 
 	// Start the webserver
 	webserver.ServerStart();
-	xTaskCreate(Webserver::RebootChecker, "Reboot Checker Loop", 1024, &webserver, 1, NULL);
 
 	// Start MDNS service
 	if (Configuration::currentConfig.mdns) {
@@ -240,16 +273,9 @@ void setup() {
 		while(true);
 	}
 
-	// Print the configured sensors, actors, and webhooks
+	// Print the configured sensors, actors
 	Logger.println(SensorManager::getSensorInfo());
 	Logger.println(ActorManager::getActorInfo());
-
-	// Start action processor loop, the stack depth has been significantly over-provisioned for the action loop as there's no way to know what actions could be running
-	if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, &actionHandle) != pdPASS) {
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Logger.print("Could not start actionProcessor task");
-		while(true);
-	}
 
 	// Give info to user
 	Logger.println("Time: " + TimeInterface::getDateTime());
@@ -294,8 +320,8 @@ void loop() {
 		if (periodicHandle == NULL) {
 			// Periodic tasks run in their own loop so that if it crashes it can be restarted
 			current_millis_task = current_millis;
-			// The stack depth has been over-provisioned for the task loop as there's no way to know what tasks could be running
-			if (xTaskCreate(periodicTaskLoop, "Periodic Tasks", getArduinoLoopTaskStackSize(), NULL, 1, &periodicHandle) != pdPASS) {
+			// The stack depth has been significantly over-provisioned for the task loop as there's no way to know what tasks could be running
+			if(xTaskCreate(periodicTaskLoop, "Periodic Tasks", getArduinoLoopTaskStackSize() * 2, NULL, 1, &periodicHandle) != pdPASS) {
 				Logger.println("Could not create periodic task loop");
 				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 			}
@@ -315,30 +341,76 @@ void loop() {
 	}
 
 	// Manage action processor task loop
-	if (!ActorManager::running || actionHandle == NULL) {
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Restarting action processor task");
-		if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize(), NULL, 1, &actionHandle) != pdPASS) {
-			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-			Logger.println("Could not start logger messageProcessor task");
+	if (!ActorManager::noActors) {
+		if (xSemaphoreTake(ActorManager::taskMutex, pdMS_TO_TICKS(500)) == pdTRUE) {
+			TaskHandle_t actionTaskCopy = ActorManager::actionHandle;
+			xSemaphoreGive(ActorManager::taskMutex);
+			if (actionTaskCopy == nullptr) {
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+				Logger.println("Restarting action processor task");
+				if (xTaskCreate(ActorManager::actionProcessor, "Action Processor Loop", getArduinoLoopTaskStackSize() * 2, NULL, 1, &actionTaskCopy) != pdPASS) {
+					EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+					Logger.println("Could not start action processor task");
+				} else {
+					if (xSemaphoreTake(ActorManager::taskMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+						ActorManager::actionHandle = actionTaskCopy;
+						xSemaphoreGive(ActorManager::taskMutex);
+					} else {
+						Logger.println("Could not assign action processor task handle, deleting task");
+						// Delete task, try again next loop
+						vTaskDelete(actionTaskCopy);
+					}
+				}
+			}
 		}
 	}
 
 	// Manage logger task loop
-	if (!Logger.running || loggerHandle == NULL) {
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-		Serial.println("Restarting logger message task");
-		if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, &loggerHandle) != pdPASS) {
-			EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
-			Serial.println("Could not start logger messageProcessor task");
+	if (!LogBroadcaster::noReceivers) {
+		if (xSemaphoreTake(LogBroadcaster::taskMutex, pdMS_TO_TICKS(500)) == pdTRUE) {
+			TaskHandle_t loggerTaskCopy = LogBroadcaster::loggerHandle;
+			xSemaphoreGive(LogBroadcaster::taskMutex);
+			if (loggerTaskCopy == nullptr) {
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+				Serial.println("Restarting log processor task");
+				if (xTaskCreate(LogBroadcaster::messageProcessor, "Logger Message Loop", 4096, NULL, 1, &loggerTaskCopy) != pdPASS) {
+					EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+					Serial.println("Could not start log processor task");
+				} else {
+					if (xSemaphoreTake(LogBroadcaster::taskMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+						LogBroadcaster::loggerHandle = loggerTaskCopy;
+						xSemaphoreGive(LogBroadcaster::taskMutex);
+					} else {
+						Serial.println("Could not assign log processor task handle, deleting task");
+						// Delete task, try again next loop
+						vTaskDelete(loggerTaskCopy);
+					}
+				}
+			}
 		}
 	}
 
 	// Manage event task loop
-	if (!EventBroadcaster::running || eventHandle == NULL) {
-		Serial.println("Restarting event processor task");
-		if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, &eventHandle)!= pdPASS) {
-			Logger.println("Could not start logger messageProcessor task");
+	if (!EventBroadcaster::noReceivers) {
+		if (xSemaphoreTake(EventBroadcaster::taskMutex, pdMS_TO_TICKS(500)) == pdTRUE) {
+			TaskHandle_t eventTaskCopy = EventBroadcaster::eventHandle;
+			xSemaphoreGive(EventBroadcaster::taskMutex);
+			if (eventTaskCopy == nullptr) {
+				EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
+				Logger.println("Restarting event processor task");
+				if (xTaskCreate(EventBroadcaster::eventProcessor, "Event Processor Loop", 4096, NULL, 1, &eventTaskCopy) != pdPASS) {
+					Logger.println("Could not start event processor task");
+				} else {
+					if (xSemaphoreTake(EventBroadcaster::taskMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+						EventBroadcaster::eventHandle = eventTaskCopy;
+						xSemaphoreGive(EventBroadcaster::taskMutex);
+					} else {
+						Logger.println("Could not assign event processor task handle, deleting task");
+						// Delete task, try again next loop
+						vTaskDelete(eventTaskCopy);
+					}
+				}
+			}
 		}
 	}
 

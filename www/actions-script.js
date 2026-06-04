@@ -33,18 +33,22 @@ function addActors(actors) {
 	holder.innerHTML = html;
 }
 
-// Adds an action to the execution queue with any payload
+// Adds or executes an action with any payload
 async function executeAction(actor, action) {
 	try {
 		if (document.getElementById("immediate").checked) {
 			response = await POSTRequest("/actors/execute", "", {actorName: actor, actionName: action, payload: document.getElementById("payload").value});
-			showResult(response);
+			showResponse(response);
 		} else {
 			response = await POSTRequest("/actors/add", "Action added to queue", {actorName: actor, actionName: action, payload: document.getElementById("payload").value});
 		}
 	} catch (e) {
 		return console.error(e);
 	}
+}
+
+// Parses and shows response from executed action
+function showResponse(response) {
 	let message = 'Action executed ';
 	if (response.success) {
 		message += 'successfully.';

@@ -10,24 +10,9 @@ std::vector<LogReceiver*> LogBroadcaster::receivers;
 /// @brief Global log broadcaster definition
 LogBroadcaster Logger;
 
-/// @brief Create a new log broadcaster
-LogBroadcaster::LogBroadcaster() {
-	receiverMutex = xSemaphoreCreateMutex();
-	if (messageQueue == NULL) {
-		messageQueue = xQueueCreate(15, sizeof(String*));
-	}
-}
-
 /// @brief Begins on the subscribed receivers
 /// @return True on success
 bool LogBroadcaster::beginReceivers() {
-	// Ensure mutex was created
-	if (receiverMutex == NULL) {
-		receiverMutex = xSemaphoreCreateMutex();
-		if (receiverMutex == NULL) {
-			return false;
-		}
-	}
 	// Ensure mutex was created
 	if (taskMutex == NULL) {
 		taskMutex = xSemaphoreCreateMutex();
@@ -35,19 +20,14 @@ bool LogBroadcaster::beginReceivers() {
 			return false;
 		}
 	}
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
-		return false;
-	}
 	if (!receivers.empty()) {
 		noReceivers = false;
 		for (const auto& r : receivers) {
 			if (!r->begin()) {
-				xSemaphoreGive(receiverMutex);
 				return false;
 			}
 		}
 	}
-	xSemaphoreGive(receiverMutex);
 	return true;
 }
 
@@ -55,11 +35,7 @@ bool LogBroadcaster::beginReceivers() {
 /// @param receiver A pointer to the receiver
 /// @return True on success
 bool LogBroadcaster::addReceiver(LogReceiver* receiver) {
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdFALSE) {
-		return false;
-	}
 	LogBroadcaster::receivers.push_back(receiver);
-	xSemaphoreGive(receiverMutex);
 	return true; // Currently no way to fail this
 }
 
@@ -67,16 +43,14 @@ bool LogBroadcaster::addReceiver(LogReceiver* receiver) {
 /// @return A JSON string of all the versions
 String LogBroadcaster::getReceiverVersions() {
 	String output = "{}";
-	if (xSemaphoreTake(receiverMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
-		if (receivers.size() > 0) {
-			// Allocate the JSON document
-			JsonDocument doc;
-			// Add versions to object
-			for (const auto& r : receivers) {
-				doc[r->Description.name] = r->Description.version;
-			}
-			serializeJson(doc, output);
+	if (receivers.size() > 0) {
+		// Allocate the JSON document
+		JsonDocument doc;
+		// Add versions to object
+		for (const auto& r : receivers) {
+			doc[r->Description.name] = r->Description.version;
 		}
+		serializeJson(doc, output);
 	}
 	return output;
 }
@@ -140,31 +114,19 @@ void LogBroadcaster::messageProcessor(void* arg) {
 		return;
 	}
 	String* message;
-		// Process all messages in the queue
+	// Process all messages in the queue
 	while (xQueueReceive(messageQueue, &message, portMAX_DELAY) == pdTRUE) {
-		 std::unique_ptr<String> safe_msg(message);
-		// Take mutex before accessing receivers
-		if (xSemaphoreTake(Logger.receiverMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
-			try {
-				for (const auto& r : Logger.receivers) {
-					if (!r->receiveMessage(*safe_msg)) {
-						break;  // Stop if a receiver fails
-					}
+		try { // Try/catch is not a great solution here, should be improved
+			for (const auto& r : Logger.receivers) {
+				if (!r->receiveMessage(*message)) {
+					Logger.printf("Error with log receiver %s", r->Description.name);
 				}
 			}
-			catch (...) {
-				Logger.println("Crash in a log receiver");
-			}
-			xSemaphoreGive(Logger.receiverMutex);
-		} else {
-			// If mutex can't be taken, put the message back and try again
-			String* ptr = safe_msg.get();
-			if (xQueueSend(messageQueue, &ptr, pdMS_TO_TICKS(100)) != pdTRUE) {
-				Logger.println("Log message dropped due to mutex contention");
-			} else {
-				(void)safe_msg.release();
-			}
 		}
+		catch (...) {
+			Logger.println("Exception in processing log message from queue");
+		}
+		delete message;
 	}
 	xSemaphoreTake(taskMutex, portMAX_DELAY);
 	loggerHandle = nullptr;

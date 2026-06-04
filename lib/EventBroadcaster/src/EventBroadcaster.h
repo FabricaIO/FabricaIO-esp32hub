@@ -12,17 +12,12 @@
 #include <ArduinoJson.h>
 #include <EventReceiver.h>
 #include <vector>
-#include <atomic>
 
 /// @brief Broadcasts device events
 class EventBroadcaster {
 	private:
 		/// @brief Stores all event receivers
 		static std::vector<EventReceiver*> receivers;
-
-		/// @brief Mutex to protect sending events to receivers
-		/// @note Not strictly necessary given strict startup order, but doesn't hurt
-		static SemaphoreHandle_t receiverMutex;
 
 		/// @brief Queue to hold events to be processed
 		static QueueHandle_t eventQueue;

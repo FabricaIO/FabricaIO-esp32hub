@@ -86,7 +86,6 @@ body {
 #up-percent {
 	position: absolute;
 	top: 2px;
-	left: 0;
 	width: 100%;
 	display: flex;
 	align-items: center;
