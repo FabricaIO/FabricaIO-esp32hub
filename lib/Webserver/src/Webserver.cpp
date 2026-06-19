@@ -17,7 +17,7 @@ Webserver::Webserver(AsyncWebServer* Webserver) {
 	server = Webserver;
 }
 
-/// @brief Starts the update server
+/// @brief Starts the web server server
 bool Webserver::ServerStart() {
 	Logger.println("Starting web server");
 
@@ -628,34 +628,26 @@ void Webserver::onUpdate(AsyncWebServerRequest *request, String filename, size_t
 		request->send(HTTP_CODE_UNAUTHORIZED, "text/plain", "Authentication failed");
 		return;
 	}
-	if (!index)
-	{
+	if (!index) {
 		Logger.printf("Update Start: %s\n", filename.c_str());
 		// Pause automation during update
 		Configuration::currentConfig.tasksEnabled = false;
 		delay(100);
 		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Updating);
 		// Ensure firmware will fit into flash space
-		if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000))
-		{
+		if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
 			Update.printError(Logger);
 		}
 	}
-	if (!Update.hasError())
-	{
-		if (Update.write(data, len) != len)
-		{
+	if (!Update.hasError()) {
+		if (Update.write(data, len) != len) {
 			Update.printError(Logger);
 		}
 	}
-	if (final)
-	{
-		if (Update.end(true))
-		{
+	if (final) {
+		if (Update.end(true)) {
 			Logger.printf("Update Success: %uB\n", index + len);
-		}
-		else
-		{
+		} else {
 			Update.printError(Logger);
 		}
 	}
