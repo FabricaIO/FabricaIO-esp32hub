@@ -91,6 +91,7 @@ const char update_page[] = R"(<!DOCTYPE html>
 	<a class='def-button' href="/">Home</a>
 </div>
 <h1>Firmware Updater</h1>
+<div id='message'></div>
 <h2>Upload Firmware</h2>
 <h3 id='fw'>Current version: </h3>
 <div id='up-progress'>
@@ -101,7 +102,6 @@ const char update_page[] = R"(<!DOCTYPE html>
 <label for='up-file' class='def-button' id='up-label'>
 	Update
 </label>
-<div id='message'></div>
 </div>
 <script>
 let uprog = {
@@ -139,17 +139,12 @@ let uprog = {
 			xhr.upload.onloadend = () => uprog.update(100);
 			
 			xhr.onload = function() {
-				if (this.status == 507) {
-					document.getElementById('message').innerHTML = "Not enough free storage for file!";
-					reject(new Error('Not enough free storage'));
-				} else if (this.status !== 201) {
+				if (this.status !== 202) {
 					document.getElementById('message').innerHTML = this.response;
 					reject(new Error(this.response));
 				} else {
 					uprog.update(100);
-					document.getElementById('message').innerHTML = 'File uploaded!';
-					updateFileList();
-					getFreeStorage();
+					document.getElementById('message').innerHTML = 'Update success, rebooting!';
 					resolve(this.response);
 				}
 			};

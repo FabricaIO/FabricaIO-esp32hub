@@ -551,7 +551,7 @@ void Webserver::ServerStop() {
 /// @return Returns true on success
 bool Webserver::startReboot() {
 	if (!rebooting) {
-		return xTaskCreate(Reboot, "Reboot task", 1024, this, 1, NULL) == pdPASS;
+		return xTaskCreate(Reboot, "Reboot task", 2048, this, 1, NULL) == pdPASS;
 	}
 	return false;
 }
