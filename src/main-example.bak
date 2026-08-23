@@ -55,16 +55,15 @@ void WiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 	EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Error);
 	Logger.print("WiFi lost connection. Reason: ");
 	Logger.println(info.wifi_sta_disconnected.reason);
-	Logger.println("Trying to Reconnect");
-	WiFi.disconnect();
-	if (WiFi.reconnect()) {
-		// Stop webserver
-		webserver.ServerStop();
-		// Start webserver
-		webserver.ServerStart();
-		Logger.println("WiFi reconnected");
-		EventBroadcaster::broadcastEvent(EventBroadcaster::Events::Ready);
-	}
+}
+
+/// @brief Restarts the webserver once WiFi actually reobtains an IP after a disconnect
+/// @param event The event
+/// @param info The info associated with the event
+void WiFiReconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+	Logger.println("WiFi reconnected");
+	webserver.ServerStop();
+	webserver.ServerStart();
 }
 
 /// @brief Checks for and runs periodic tasks as needed
@@ -221,11 +220,11 @@ void setup() {
 		AsyncWiFiManager manager(&server, &dns);
 		WiFiConfig configurator(&manager, Configuration::currentConfig.configSSID, Configuration::currentConfig.configPW);
 		configurator.connectWiFi();
-		WiFi.setAutoReconnect(true);
 		server.reset();
 		server.end();
-		// Attach handler for WiFi disconnected
+		// Attach handler for WiFi disconnected/reconnected
 		WiFi.onEvent(WiFiDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+		WiFi.onEvent(WiFiReconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
 	} else {
 		// Start AP
 		WiFi.softAP(Configuration::currentConfig.configSSID, Configuration::currentConfig.configPW);

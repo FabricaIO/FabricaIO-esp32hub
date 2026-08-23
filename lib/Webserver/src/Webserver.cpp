@@ -591,6 +591,12 @@ void Webserver::onUpload_file(AsyncWebServerRequest *request, String filename, s
 		String path = request->header("FILE_UPLOAD_PATH");
 		Webserver::upload_abort = false;
 		request->_tempFile = Storage::getFileSystem()->open(path + "/" + filename, "w", true);
+		if (!request->_tempFile) {
+			final = true;
+			Webserver::upload_abort = true;
+			Webserver::upload_response_code = HTTP_CODE_INSUFFICIENT_STORAGE;
+			return;
+		}
 		Logger.println("Uploading file " + filename);
 	}
 	if (Webserver::upload_abort)

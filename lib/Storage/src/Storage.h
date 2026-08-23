@@ -42,7 +42,7 @@ class Storage {
 		static bool appendToFile(String path, String content);
 		static bool renameFile(String path1, String path2);
 		static bool deleteFile(String path);
-		static size_t freeSpace();
+		static uint64_t freeSpace();
 		
 	private:
 		/// @brief The storage media type being used

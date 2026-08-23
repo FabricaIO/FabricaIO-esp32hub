@@ -2,7 +2,7 @@
 
 // Initialize static variables
 Storage::Media Storage::storageMedia = Storage::Media::Not_Ready;
-FS* Storage::storageSystem = &LittleFS;
+FS* Storage::storageSystem = nullptr;
 
 /// @brief Mount LittleFS and format if necessary
 /// @return True on successful mount of LittleFS
@@ -125,6 +125,10 @@ Storage::Media Storage::getMediaType() {
 std::vector<String> Storage::listFiles(String dirname, uint8_t levels) {
 	Logger.println("Listing directory: " + dirname);
 	std::vector<String> folderContents;
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return folderContents;
+	}
 	File root = storageSystem->open(dirname);
 	if(!root){
 		Logger.println("Failed to open directory");
@@ -160,6 +164,10 @@ std::vector<String> Storage::listFiles(String dirname, uint8_t levels) {
 std::vector<String> Storage::listDirs(String dirname, uint8_t levels) {
 	Logger.println("Listing directory: " + dirname);
 	std::vector<String> folderContents;
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return folderContents;
+	}
 	File root = storageSystem->open(dirname);
 	if(!root){
 		Logger.println("Failed to open directory");
@@ -191,6 +199,10 @@ std::vector<String> Storage::listDirs(String dirname, uint8_t levels) {
 /// @return True if it exists
 bool Storage::fileExists(String path) {
 	Logger.println("Checking for file: " + path);
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return false;
+	}
 	return storageSystem->exists(path);
 }
 
@@ -199,6 +211,10 @@ bool Storage::fileExists(String path) {
 /// @return True on success
 bool Storage::createDir(String path) {
 	Logger.println("Creating Dir: " + path);
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return false;
+	}
 	return storageSystem->mkdir(path);;
 }
 
@@ -207,6 +223,10 @@ bool Storage::createDir(String path) {
 /// @return True on success
 bool Storage::removeDir(String path) {
 	Logger.println("Removing Dir:" + path);
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return false;
+	}
 	return storageSystem->rmdir(path);
 }
 
@@ -215,6 +235,10 @@ bool Storage::removeDir(String path) {
 /// @return A String of the file contents, empty string on failure
 String Storage::readFile(String path) {
 	Logger.println("Reading file: " + path);
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return "";
+	}
 	File file = storageSystem->open(path);
 	if (!file) {
 		Logger.println("Failed to open file for reading");
@@ -234,8 +258,8 @@ String Storage::readFile(String path) {
 /// @return True on success
 bool Storage::writeFile(String path, String content) {
 	Logger.println("Writing file: " + path);
-	if (content.length() >= freeSpace()) {
-		Logger.println("Not enough free space");
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
 		return false;
 	}
 	File file = storageSystem->open(path, FILE_WRITE);
@@ -243,7 +267,7 @@ bool Storage::writeFile(String path, String content) {
 		Logger.println("Failed to open file for writing");
 		return false;
 	}
-	return file.print(content) > 0;
+	return file.print(content) == content.length();
 }
 
 /// @brief Appends data to a file
@@ -252,16 +276,16 @@ bool Storage::writeFile(String path, String content) {
 /// @return True on success
 bool Storage::appendToFile(String path, String content) {
 	Logger.println("Appending to file: " + path);
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return false;
+	}
 	File file = storageSystem->open(path, FILE_APPEND);
 	if (!file) {
 		Logger.println("Failed to open file for appending");
 		return false;
 	}
-	if (content.length() + file.size() >= freeSpace()) {
-		Logger.println("Not enough free space");
-		return false;
-	}
-	return file.print(content) > 0;
+	return file.print(content) == content.length();
 }
 
 /// @brief Renames/moves a file on the storage
@@ -270,6 +294,10 @@ bool Storage::appendToFile(String path, String content) {
 /// @return True on success
 bool Storage::renameFile(String path1, String path2) {
 	Logger.println("Renaming file" + path1 + " to " + path2);
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return false;
+	}
 	return storageSystem->rename(path1, path2);
 }
 
@@ -278,12 +306,16 @@ bool Storage::renameFile(String path1, String path2) {
 /// @return True on success
 bool Storage::deleteFile(String path) {
 	Logger.println("Deleting file: " + path);
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
+		return false;
+	}
 	return storageSystem->remove(path);
 }
 
 /// @brief Get free space on filesystem
 /// @return The number of free bytes
-size_t Storage::freeSpace() {
+uint64_t Storage::freeSpace() {
 	switch (storageMedia)
 	{
 		case Storage::Media::LittleFS:
@@ -297,6 +329,9 @@ size_t Storage::freeSpace() {
 			return SD_MMC.totalBytes() - SD_MMC.usedBytes();
 			break;
 		#endif
+	}
+	if (storageSystem == nullptr) {
+		Logger.println("No storage mounted");
 	}
 	return 0;
 }
