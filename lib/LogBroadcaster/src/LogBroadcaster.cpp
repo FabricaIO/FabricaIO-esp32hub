@@ -68,7 +68,7 @@ size_t LogBroadcaster::write(uint8_t c) {
 /// @param size The size of the buffer
 /// @return The number of bytes written
 size_t LogBroadcaster::write(const uint8_t *buffer, size_t size) {
-	String* message = new String((char*)buffer);
+	String* message = new String(buffer, size);
 	return addMessageToQueue(message, size);
 }
 
@@ -119,12 +119,13 @@ void LogBroadcaster::messageProcessor(void* arg) {
 		try { // Try/catch is not a great solution here, should be improved
 			for (const auto& r : Logger.receivers) {
 				if (!r->receiveMessage(*message)) {
-					Logger.printf("Error with log receiver %s", r->Description.name);
+					// Serial, not Logger: this task drains the queue, so queuing here can block on itself
+					Serial.printf("Error with log receiver %s\n", r->Description.name.c_str());
 				}
 			}
 		}
 		catch (...) {
-			Logger.println("Exception in processing log message from queue");
+			Serial.println("Exception in processing log message from queue");
 		}
 		delete message;
 	}
